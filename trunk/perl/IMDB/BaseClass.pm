@@ -1,0 +1,552 @@
+=head1 NAME
+
+IMDB::BaseClass - a base class for IMDB::Film and IMDB::Persons.
+
+=head1 SYNOPSIS
+
+  use base qw(IMDB::BaseClass);
+  
+=head1 DESCRIPTION
+
+IMDB::BaseClass implements a base functionality for IMDB::Film
+and IMDB::Persons.
+
+=cut
+package IMDB::BaseClass;
+
+use strict;
+use warnings;
+
+use HTML::TokeParser;
+use LWP::Simple qw($ua get);
+use Cache::FileCache;
+use Carp;
+
+use Data::Dumper;
+
+use vars qw($VERSION %FIELDS $AUTOLOAD %STATUS_DESCR);
+
+BEGIN {
+	$VERSION = '0.28';
+
+	%STATUS_DESCR = (
+		0 => 'Empty',
+		1 => 'Filed',
+		2 => 'Fresh',
+		3 => 'Cached',
+	);	
+}
+
+use constant FORCED 		=> 1;
+use constant CLASS_NAME 	=> 'IMDB::BaseClass';
+
+use constant FROM_FILE		=> 1;
+use constant FROM_INTERNET	=> 2;
+use constant FROM_CACHE		=> 3;
+
+use fields qw(	content
+				parser
+				matched
+				proxy
+				error
+				cache
+				host
+				query
+				search
+				cacheObj
+				cache_exp
+				cache_root
+				clear_cache
+				debug
+				status
+				file
+				timeout
+				user_agent
+				_code
+				
+	);
+
+=head2 Constructor and initialization
+
+=over 4
+
+=item new()
+
+Object's constructor. You should pass as parameter movie title or IMDB code.
+
+	my $imdb = new IMDB::Film(crit => <some code>);
+
+or	
+
+	my $imdb = new IMDB::Film(crit => <some title>);
+
+Also, you can specify following optional parameters:
+	
+	- proxy - define proxy server name and port;
+	- debug	- switch on debug mode (on by default);
+	- cache - cache or not of content retrieved pages.
+
+=cut
+sub new {
+	my $caller = shift;
+	my $class = ref($caller) || $caller;
+	my $self = fields::new($class);
+	$self->_init(@_);
+	return $self;
+}
+
+=item _init()
+
+Initialize object. It gets list of service class properties and assign value to them from input
+parameters or from the hash with default values.
+
+=cut
+sub _init {
+	my CLASS_NAME $self = shift;
+	my %args = @_;
+
+	no warnings 'deprecated';
+
+	for my $prop ( keys %{ $self->fields } ) {		
+		unless($prop =~ /^_/) {
+			$self->{$prop} = defined $args{$prop} ? $args{$prop} : $self->_get_default_value($prop);	
+		}	
+	}
+	
+	if($self->_cache()) {
+		$self->_cacheObj( new Cache::FileCache( { 	default_expires_in 	=> $self->_cache_exp, 
+													cache_root 			=> $self->_cache_root } ) );
+
+		$self->_cacheObj->clear() if $self->_clear_cache;											
+	}												
+	
+	if($self->_proxy) { $ua->proxy(['http', 'ftp'], $self->_proxy()) }
+	else { $ua->env_proxy() }
+
+	$ua->timeout($self->timeout);
+	$ua->agent($self->user_agent);
+
+	$self->_content( $args{crit} );
+	$self->_parser();
+}
+
+=item user_agent()
+
+Define an user agent for HTTP request. It's 'Mozilla/5.0' by default.
+For more information refer to LWP::UserAgent.
+
+=cut
+sub user_agent {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{user_agent} = shift }
+	return $self->{user_agent}
+}
+
+=item timeout()
+
+Define a timeout for HTTP request in seconds. By default it's 10 sec.
+For more information refer to LWP::UserAgent.
+
+=cut
+sub timeout {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{timeout} = shift }
+	return $self->{timeout}
+}
+
+
+=item code()
+
+Get IMDB film code.
+
+	my $code = $film->code();
+
+=cut
+sub code {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{_code} = shift }
+	return $self->{_code};
+}
+
+=item id()
+
+Get IMDB film id (actually, it's the same as code).
+
+	my $id = $film->id();
+
+=cut
+sub id {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{_code} = shift }
+	return $self->{_code};
+}
+
+=item _proxy()
+
+Store address of proxy server. You can pass a proxy name as parameter into
+object constructor:
+
+	my $imdb = new IMDB::Film(code => 111111, proxy => 'my.proxy.host:8080');
+
+or you can define environment variable 'http_host'. For exanple, for Linux
+you shoud do a following:
+
+	export http_proxy=my.proxy.host:8080
+	
+=cut
+sub _proxy {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{proxy} = shift }
+	return $self->{proxy};
+}
+
+=item _cache()
+
+Store cache flag. Indicate use file cache to store content page or not:
+	
+	my $imdb = new IMDB::Film(code => 111111, cache => 1);
+
+=cut
+sub _cache {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{cache} = shift }
+	return $self->{cache}
+}
+
+=item _clear_cache
+
+Store flag clear_cache which is indicated clear exisisting cache or not (false by default):
+
+	my $imdb = new IMDB::Film(code => 111111, cache => 1, clear_cache => 1);
+
+=cut
+sub _clear_cache {
+	my CLASS_NAME $self = shift;
+	if($_) { $self->{clear_cache} = shift }
+	return $self->{clear_cache};
+}
+
+=item _cacheObj()
+
+In case of using cache, we create new Cache::File object and store it in object's
+propery. For more details about Cache::File please see Cache::Cache documentation.
+
+=cut
+sub _cacheObj {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{cacheObj} = shift }
+	return $self->{cacheObj}
+}
+
+=item _cache_exp()
+
+In case of using cache, we can define value time of cache expire.
+
+	my $imdb = new IMDB::Film(code => 111111, cache_exp => '1 h');
+
+For more details please see Cache::Cache documentation.
+
+=cut
+sub _cache_exp {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{cache_exp} = shift }
+	return $self->{cache_exp}
+}
+
+sub _cache_root {
+	my CLASS_NAME $self = shift;
+	$self->{cache_root} = shift if @_;
+
+	$self->_show_message("CACHE ROOT is " . $self->{cache_root}, 'DEBUG');
+	
+	return $self->{cache_root};
+}
+
+sub _show_message {
+	my CLASS_NAME $self = shift;
+	my $msg = shift || 'Unknown error';
+	my $type = shift || 'ERROR';
+
+	return if $type =~ /^debug$/i && !$self->_debug();
+	
+	if($type =~ /(debug|info|warn)/i) { carp "[$type] $msg" } 
+	else { croak "[$type] $msg" }
+}
+
+=item _host()
+
+Store IMDB host name. You can pass this value in object constructor:
+		
+	my $imdb = new IMDB::Film(code => 111111, host => 'us.imdb.com');
+
+By default, it uses 'www.imdb.com'.
+
+=cut
+sub _host {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{host} = shift }
+	return $self->{host}
+}
+
+=item _query()
+
+Store query string to retrieve film by its ID. You can define
+different value for that:
+
+	my $imdb = new IMDB::Film(code => 111111, query => 'some significant string');
+
+Default value is 'title/tt'.
+
+B<Note: this is a mainly service parameter. So, there is no reason to pass it in the
+real case.>
+
+=cut
+sub _query {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{query} = shift }
+	return $self->{query}
+}
+
+=item _search()
+
+Store search string to find film by its title. You can define
+different value for that:
+
+	my $imdb = new IMDB::Film(code => 111111, seach => 'some significant string');
+
+Default value is 'Find?select=Titles&for='.
+
+=cut	
+sub _search {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{search} = shift }
+	return $self->{search}
+}
+
+=item _debug()
+
+Indicate to use DEBUG mode to display some debug messages:
+	
+	my $imdb = new IMDB::Film(code => 111111, debug => 1);
+
+By default debug mode is switched off.	
+
+=cut
+sub _debug {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{debug} = shift }
+	return $self->{debug}
+}
+
+=item _content()
+
+Connect to the IMDB, retrieve page according to crit: by film
+IMDB ID or its title and store content of that page in the object
+property. 
+In case using cache, first check if page was already stored in the
+cache then retrieve page from the cache else store content of the 
+page in the cache.
+
+=cut
+sub _content {
+	my CLASS_NAME $self = shift;
+	if(@_) {
+		my $crit = shift || '';
+		my $page;
+	
+		$self->code($crit) if $crit =~ /^\d+$/;
+		$page = $self->_cacheObj()->get($crit) if $self->_cache();
+		
+		$self->_show_message("CRIT: $crit", 'DEBUG');
+		
+		unless($page) {			
+			if( -f $crit ) {
+				$self->_show_message("Parse IMDB HTML file ...", 'DEBUG');
+				
+				undef $/;
+				open FILE, $crit or die "Cannot open off-line IMDB file: $!!";
+				$page = <FILE>;
+				close FILE;
+				$self->status(FROM_FILE);
+			} else {
+				$self->_show_message("Retrieving page from internet ...", 'DEBUG');
+					
+				my $url = 'http://'.$self->_host().'/'.
+						( $crit =~ /^\d+$/ ? $self->_query() : $self->_search() ).$crit;				
+				
+				$page = $self->_get_page_from_internet($url);
+				$self->status(FROM_INTERNET);
+			}
+			
+			$self->_cacheObj()->set($crit, $page, $self->_cache_exp()) if $self->_cache();
+		} else {
+			$self->_show_message("Retrieving page from cache ...", 'DEBUG');
+			$self->status(FROM_CACHE);
+		}
+		
+		$self->{content} = \$page;
+	}
+	
+	return $self->{content};
+}
+
+sub _get_page_from_internet {
+	my CLASS_NAME $self = shift;
+	my $url = shift;
+	
+	$self->_show_message("URL is [$url]...", 'DEBUG');
+
+	my $page = get($url);
+
+	unless($page) {
+		$self->error("Cannot retieve an url: [$url]!");				
+		$self->_show_message("Cannot retrieve url [$url]", 'CRITICAL');				
+	}
+	
+	return $page;
+}
+
+=item _parser()
+
+Setup HTML::TokeParser and store. To have possibility to inherite that class
+we should every time initialize parser using stored content of page.
+For more information please see HTML::TokeParser documentation.
+
+=cut
+sub _parser {	
+	my CLASS_NAME $self = shift;
+	my $forced = shift || 0;
+	my $page = shift || undef;
+
+	if($forced) {
+		my $content = defined $page ? $page : $self->_content();
+
+		my $parser = new HTML::TokeParser($content) or croak "[CRITICAL] Cannot create HTML parser: $!!";
+		$self->{parser} = $parser;
+	}
+	
+	return $self->{parser};
+}
+
+=back
+
+=cut
+
+sub _search_results {
+	my CLASS_NAME $self = shift;
+	my $pattern = shift || croak 'Please, specify search pattern!';
+	my $end_tag = shift || '/li';
+	
+	my @matched;
+	my $parser = $self->_parser();
+
+	while( my $tag = $parser->get_tag('a') ) {
+		my $href = $tag->[1]{href};
+		if( my($id) = $href =~ /$pattern/ ) {
+			push @matched, {id => $id, title => $parser->get_trimmed_text('a', $end_tag)};
+		}	
+	}
+
+	$self->matched(\@matched);
+	$self->_content($matched[0]->{id});
+	$self->_parser(FORCED);
+
+	return $matched[0]->{title};
+}
+
+=item matched()
+
+Retrieve list of matched films each element of which is hash reference - 
+{ id => <Film ID>, title => <Film Title>:
+
+	my @matched = @{ $film->matched() };
+
+Note: if movie was matched by title unambiguously it won't be present in this array!	
+
+=cut
+sub matched {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{matched} = shift }
+	return $self->{matched};
+}
+
+sub status {
+	my CLASS_NAME $self = shift;
+	if(@_) { $self->{status} = shift }
+	return $self->{status};
+}
+
+sub status_descr {
+	my CLASS_NAME $self = shift;
+	return $STATUS_DESCR{$self->{status}} || $self->{status};	
+}
+
+sub retrieve_code {
+	my CLASS_NAME $self = shift;
+	my $parser = shift;
+	my $pattern = shift;
+	my($id, $tag);			
+	
+	while($tag = $parser->get_tag('a')) {
+		if($tag->[1]{href} && $tag->[1]{href} =~ m!$pattern!) {
+			$self->code($1);
+			last;
+		}	
+	}	
+}
+
+=item error()
+
+Return string which contains error messages separated by \n:
+
+	my $errors = $film->error();
+
+=cut
+sub error {
+	my CLASS_NAME $self = shift;
+	if(@_) { push @{ $self->{error} }, shift() }
+	return join("\n", @{ $self->{error} }) if $self->{error};
+}
+
+sub AUTOLOAD {
+ 	my $self = shift;
+	my($class, $method) = $AUTOLOAD =~ /(.*)::(.*)/;
+	my($pack, $file, $line) = caller;
+
+	carp "Method [$method] not found in the class [$class]!\n Called from $pack	at line $line";
+}
+
+sub DESTROY {
+	my $self = shift;
+}
+
+1;
+
+__END__
+
+=head1 EXPORTS
+
+Nothing
+
+=head1 BUGS
+
+Please, send me any found bugs by email: stepanov.michael@gmail.com. 
+
+=head1 SEE ALSO
+
+IMDB::Persons 
+IMDB::Film
+WWW::Yahoo::Movies
+HTML::TokeParser 
+
+=head1 AUTHOR
+
+Mikhail Stepanov (stepanov.michael@gmail.com)
+
+=head1 COPYRIGHT
+
+Copyright (c) 2004 - 2005, Mikhail Stepanov. All Rights Reserved.
+This module is free software. It may be used, redistributed and/or 
+modified under the same terms as Perl itself.
+
+=cut
