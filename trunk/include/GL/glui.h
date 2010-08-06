@@ -1,7 +1,7 @@
 /****************************************************************************
 
-  GLUI User Interface Toolkit (LGPL)
-  ----------------------------------
+  GLUI User Interface Toolkit
+  ---------------------------
 
      glui.h - Main (and only) external header for 
         GLUI User Interface Toolkit
@@ -13,24 +13,30 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied 
+  warranty. In no event will the authors be held liable for any damages 
+  arising from the use of this software. 
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose, 
+  including commercial applications, and to alter it and redistribute it 
+  freely, subject to the following restrictions: 
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not 
+  claim that you wrote the original software. If you use this software 
+  in a product, an acknowledgment in the product documentation would be 
+  appreciated but is not required. 
+  2. Altered source versions must be plainly marked as such, and must not be 
+  misrepresented as being the original software. 
+  3. This notice may not be removed or altered from any source distribution. 
 
 *****************************************************************************/
 
 #ifndef GLUI_GLUI_H
 #define GLUI_GLUI_H
+
+// Having stdlib here first fixes some 'exit() redefined' errors on MSVC.NET
+// that come from old GLUT headers.
+#include <cstdlib>
 
 #if defined(GLUI_FREEGLUT)
 
@@ -56,38 +62,44 @@
 
 #endif
 
-#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-#define GLUI_VERSION 2.3f    /********** Current version **********/
+/* GLUI API shared library export/import declarations. */
+#if defined(_WIN32)
+# ifdef GLUI_BUILDING_LIB
+#  ifdef GLUIDLL
+#   define GLUIAPI __declspec(dllexport)
+#  else
+#   define GLUIAPI
+#  endif
+# else
+#  ifdef GLUIDLL
+#   define GLUIAPI __declspec(dllimport)
+#  else
+#   define GLUIAPI
+#  endif
+# endif
+#else
+#define GLUIAPI
+#endif
+
+
+#define GLUI_VERSION 2.36f    /********** Current version **********/
 
 #if defined(_WIN32)
-#if !defined(GLUI_NO_LIB_PRAGMA)
-#pragma comment(lib, "glui32.lib")  // Link automatically with GLUI library
-#endif
+#  if !defined(GLUI_NO_LIB_PRAGMA) && !defined(GLUI_BUILDING_LIB)
+// Link automatically with GLUI library
+#    if defined GLUIDLL  // define this when using glui dynamic library
+#      pragma comment(lib, "glui32dll.lib")
+#    else
+#      pragma comment(lib, "glui32.lib")  
+#    endif
+#  endif
 #endif
 
-/********** Do some basic defines *******/
-
-#ifndef Byte
-#define Byte unsigned char
-#endif
-
-#ifndef _RGBC_
-class RGBc {
-public:
-  Byte r, g, b;
-    
-  void set(Byte r,Byte g,Byte b) {this->r=r;this->g=g;this->b=b;}
-    
-  RGBc( void ) {}
-  RGBc( Byte r, Byte g, Byte b ) { set( r, g, b ); }
-};
-#define _RGBC_
-#endif
 
 /********** List of GLUT callbacks ********/
 
@@ -238,7 +250,7 @@ enum TranslationCodes
 /************ A string type for us to use **********/
 
 typedef std::string GLUI_String;
-GLUI_String& glui_format_str(GLUI_String &str, const char* fmt, ...);
+GLUIAPI GLUI_String& glui_format_str(GLUI_String &str, const char* fmt, ...);
 
 /********* Pre-declare classes as needed *********/
 
@@ -291,7 +303,7 @@ typedef void (*Int4_CB)        (int, int, int, int);
     like a GLUI_Update_CB function pointer--which takes an int;
     and a GLUI_Control_CB function pointer--which takes a GUI_Control object.
 */
-class GLUI_CB
+class GLUIAPI GLUI_CB
 {
 public:
   GLUI_CB() : idCB(0),objCB(0) {}
@@ -324,7 +336,7 @@ class GLUI_Control;
  Everything onscreen is a GLUI_Node--windows, buttons, etc.
  The nodes are traversed for event processing, sizing, redraws, etc.
 */
-class GLUI_Node 
+class GLUIAPI GLUI_Node 
 {
     friend class GLUI_Tree;     /* JVK */
     friend class GLUI_Rollout;
@@ -407,7 +419,7 @@ enum GLUI_StdBitmaps_Codes
  to represent small textures like checkboxes, arrows, etc.
  via the GLUI_StdBitmaps class.
 */
-class GLUI_Bitmap 
+class GLUIAPI GLUI_Bitmap 
 {
     friend class GLUI_StdBitmaps;
 
@@ -438,7 +450,7 @@ private:
  Keeps an array of GLUI_Bitmap objects to represent all the 
  images used in the UI: checkboxes, arrows, etc.
 */
-class GLUI_StdBitmaps
+class GLUIAPI GLUI_StdBitmaps
 {
 public:
     GLUI_StdBitmaps(); 
@@ -468,7 +480,7 @@ private:
  The master manages our interaction with GLUT.
  There's only one GLUI_Master_Object.
 */
-class GLUI_Master_Object 
+class GLUIAPI GLUI_Master_Object 
 {
 
     friend void glui_idle_func();
@@ -550,7 +562,7 @@ private:
 /**
  This is the only GLUI_Master_Object in existence.
 */
-extern GLUI_Master_Object GLUI_Master;
+extern GLUIAPI GLUI_Master_Object GLUI_Master;
 
 /************************************************************/
 /*                                                          */
@@ -566,7 +578,7 @@ extern GLUI_Master_Object GLUI_Master;
  This entire approach seems to be superceded by the "subwindow" flavor
  of GLUI.
 */
-class GLUI_Glut_Window : public GLUI_Node 
+class GLUIAPI GLUI_Glut_Window : public GLUI_Node 
 {
 public:
     GLUI_Glut_Window();
@@ -604,7 +616,7 @@ public:
   A better name for this class might be "GLUI_Environment";
   this class provides the window-level context for every control.
 */
-class GLUI_Main : public GLUI_Node 
+class GLUIAPI GLUI_Main : public GLUI_Node 
 {
     /********** Friend classes *************/
 
@@ -694,7 +706,7 @@ protected:
 public:
     GLUI_StdBitmaps  std_bitmaps;
     GLUI_String      window_name;
-    RGBc             bkgd_color;
+    unsigned char    bkgd_color[3];
     float            bkgd_color_f[3];
 
     void            *font;
@@ -756,7 +768,7 @@ public:
  should be directly accessed by users (they should be protected,
  not public); only subclasses.
 */
-class GLUI_Control : public GLUI_Node 
+class GLUIAPI GLUI_Control : public GLUI_Node 
 {
 public:
 
@@ -953,7 +965,7 @@ public:
   can be clicked.  When clicked, a button
   calls its GLUI_CB callback with its ID.
 */
-class GLUI_Button : public GLUI_Control
+class GLUIAPI GLUI_Button : public GLUI_Control
 {
 public:
     bool currently_inside;
@@ -1002,7 +1014,7 @@ protected:
  A checkbox, which can be checked on or off.  Can be linked
  to an int value, which gets 1 for on and 0 for off.
 */
-class GLUI_Checkbox : public GLUI_Control
+class GLUIAPI GLUI_Checkbox : public GLUI_Control
 {
 public:
     int  orig_value;
@@ -1058,7 +1070,7 @@ protected:
  A GLUI_Column object separates all previous controls
  from subsequent controls with a vertical bar.
 */
-class GLUI_Column : public GLUI_Control
+class GLUIAPI GLUI_Column : public GLUI_Control
 {
 public:
     void draw( int x, int y );
@@ -1092,7 +1104,7 @@ protected:
 /**
  A GLUI_Panel contains a group of related controls.
 */
-class GLUI_Panel : public GLUI_Control
+class GLUIAPI GLUI_Panel : public GLUI_Control
 {
 public:
 
@@ -1136,7 +1148,7 @@ protected:
 /**
  A list of files the user can select from.
 */
-class GLUI_FileBrowser : public GLUI_Panel
+class GLUIAPI GLUI_FileBrowser : public GLUI_Panel
 {
 public:
 /**
@@ -1200,7 +1212,7 @@ private:
  A rollout contains a set of controls,
  like a panel, but can be collapsed to just the name.
 */
-class GLUI_Rollout : public GLUI_Panel
+class GLUIAPI GLUI_Rollout : public GLUI_Panel
 {
 public:
 
@@ -1258,7 +1270,7 @@ protected:
 /**
   One collapsible entry in a GLUI_TreePanel.
 */
-class GLUI_Tree : public GLUI_Panel
+class GLUIAPI GLUI_Tree : public GLUI_Panel
 {
 public:
     GLUI_Tree(GLUI_Node *parent, const char *name, 
@@ -1358,7 +1370,7 @@ protected:
   
   FIXME: There's an infinite loop in the traversal code (OSL 2006/06)
 */
-class GLUI_TreePanel : public GLUI_Panel 
+class GLUIAPI GLUI_TreePanel : public GLUI_Panel 
 {
 public:
     GLUI_TreePanel(GLUI_Node *parent, const char *name,
@@ -1432,7 +1444,7 @@ class GLUI_Translation;
  The main user-visible interface object to GLUI.
  
 */
-class GLUI : public GLUI_Main 
+class GLUIAPI GLUI : public GLUI_Main 
 {
 public:
 /** DEPRECATED interface for creating new GLUI objects */
@@ -1576,7 +1588,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_EditText : public GLUI_Control
+class GLUIAPI GLUI_EditText : public GLUI_Control
 {
 public:
     int                 has_limits;
@@ -1694,12 +1706,19 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_CommandLine : public GLUI_EditText
+class GLUIAPI GLUI_CommandLine : public GLUI_EditText
 {
 public:
     typedef GLUI_EditText Super;
 
     enum { HIST_SIZE = 100 };
+
+    #ifdef _MSC_VER
+    // Explicit template instantiation needed for dll
+    template class GLUIAPI std::allocator<GLUI_String>;
+    template class GLUIAPI std::vector<GLUI_String, std::allocator<GLUI_String> >;
+    #endif
+
     std::vector<GLUI_String> hist_list;
     int  curr_hist;
     int  oldest_hist;
@@ -1736,6 +1755,7 @@ protected:
         newest_hist = 0;
         commit_flag = false;
     }
+
 };
 
 /************************************************************/
@@ -1744,7 +1764,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_RadioGroup : public GLUI_Control
+class GLUIAPI GLUI_RadioGroup : public GLUI_Control
 {
 public:
     int  num_buttons;
@@ -1781,7 +1801,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_RadioButton : public GLUI_Control
+class GLUIAPI GLUI_RadioButton : public GLUI_Control
 {
 public:
     int orig_value;
@@ -1822,7 +1842,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_Separator : public GLUI_Control
+class GLUIAPI GLUI_Separator : public GLUI_Control
 {
 public:
     void draw( int x, int y );
@@ -1855,7 +1875,7 @@ protected:
 /*                                                          */
 /************************************************************/
  
-class GLUI_Spinner : public GLUI_Control
+class GLUIAPI GLUI_Spinner : public GLUI_Control
 {
 public:
     // Constructor, no live var
@@ -1948,7 +1968,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_StaticText : public GLUI_Control
+class GLUIAPI GLUI_StaticText : public GLUI_Control
 {
 public:
     void set_text( const char *text );
@@ -1974,7 +1994,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_TextBox : public GLUI_Control
+class GLUIAPI GLUI_TextBox : public GLUI_Control
 {
 public:
     /* GLUI Textbox - JVK */
@@ -2077,7 +2097,7 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_List_Item : public GLUI_Node 
+class GLUIAPI GLUI_List_Item : public GLUI_Node 
 {
 public:
     GLUI_String text;
@@ -2090,7 +2110,7 @@ public:
 /*                                                          */
 /************************************************************/
 
-class GLUI_List : public GLUI_Control
+class GLUIAPI GLUI_List : public GLUI_Control
 {
 public:
     /* GLUI List - JVK */
@@ -2197,7 +2217,7 @@ protected:
 /*                                                          */
 /************************************************************/
  
-class GLUI_Scrollbar : public GLUI_Control
+class GLUIAPI GLUI_Scrollbar : public GLUI_Control
 {
 public:
     // Constructor, no live var
@@ -2310,14 +2330,14 @@ protected:
 /*                                                          */
 /************************************************************/
 
-class GLUI_Listbox_Item : public GLUI_Node 
+class GLUIAPI GLUI_Listbox_Item : public GLUI_Node 
 {
 public:
     GLUI_String text;
     int         id;
 };
 
-class GLUI_Listbox : public GLUI_Control
+class GLUIAPI GLUI_Listbox : public GLUI_Control
 {
 public:
     GLUI_String       curr_text;
@@ -2387,7 +2407,7 @@ protected:
 /**
   This is the superclass of translation and rotation widgets.
 */
-class GLUI_Mouse_Interaction : public GLUI_Control
+class GLUIAPI GLUI_Mouse_Interaction : public GLUI_Control
 {
 public:
     /*int  get_main_area_size( void ) { return MIN( h-18,  */
@@ -2433,7 +2453,7 @@ public:
   An onscreen rotation controller--allows the user to interact with
   a 3D rotation via a spaceball-like interface.
 */
-class GLUI_Rotation : public GLUI_Mouse_Interaction
+class GLUIAPI GLUI_Rotation : public GLUI_Mouse_Interaction
 {
 public:
     Arcball        *ball;
@@ -2488,7 +2508,7 @@ protected:
   An onscreen translation controller--allows the user to interact with
   a 3D translation.
 */
-class GLUI_Translation : public GLUI_Mouse_Interaction
+class GLUIAPI GLUI_Translation : public GLUI_Mouse_Interaction
 {
 public:
     int trans_type;  /* Is this an XY or a Z controller? */
