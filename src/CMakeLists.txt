@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 project (lib)
 
 set(IS_LIB_STATIC ON CACHE BOOL "Flag to decide whether static libraries are built.")
+set(WITH_NRRD OFF CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture.")
 if( IS_LIB_STATIC )
 	set(IS_STATIC			ON	CACHE	BOOL	"Build static FREEGLUT." 	FORCE)	# freeglut
 	set(BUILD_SHARED_LIBS	OFF	CACHE	BOOL	"Build static zlib." 		FORCE)	# zlib
@@ -13,7 +14,18 @@ add_subdirectory(zlib-1.2.6)			# zlib
 add_subdirectory(freeglut-2.8.0) 		# freeglut
 add_subdirectory(glui-2.36/src)			# glui
 # add_subdirectory(NrrdIO)				# ITKNrrdIO
+# ADD-BY-LEETEN 04/20/2012-BEGIN
+if( WITH_NRRD )
+	add_subdirectory(NrrdIO)			
+endif()
+# ADD-BY-LEETEN 04/20/2012-END
+
 add_subdirectory(lib3ds-1.2.0)			# lib3ds
+# ADD-BY-LEETEN 04/20/2012-BEGIN
+if( DEFINED(WIN32) )
+	add_subdirectory(pthreads-w32-2-8-0-release)	
+endif()
+# ADD-BY-LEETEN 04/20/2012-END
 
 add_dependencies(glui freeglut)
 # add_dependencies(ITKNrrdIO zlib)	
