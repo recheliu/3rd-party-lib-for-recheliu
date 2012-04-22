@@ -1,0 +1,33 @@
+genisosurface:
+
+Marching Cubes algorithm for for generating isosurfaces in arbitrary 
+(small) dimensions.
+
+ijkmcube.cxx, ijkmcube.h: Main program.  
+
+isosurfaceD.cxx, isosurface.h: Generate an isosurface from a scalar field.
+
+ijktable.cxx, ijktable.h: Class ISOSURFACE_TABLE for storing isosurface tables.
+
+
+Note: ijkmcube reads the isosurface table from the directory
+isotable_directory.  Edit ijkmcube.cxx and set the
+isotable_directory to the proper directory before compiling
+ijkmcube.cxx.
+
+
+INPUT FORMAT: ijkmcube reads regular grid data from standard input.
+Input format is Nrrd.
+
+OUTPUT FORMAT: Output format is the dimension, followed by the length
+of each grid axis, the number of isosurface vertices, a list of
+isosurface vertex coordinates, the number of isosurface simplices, and
+a list of isosurface simplex vertices (indices to the list of vertex
+coordinates.)
+
+Authors:
+
+Rephael Wenger
+Dept. of Computer Science and Engineering
+The Ohio State University
+http://www.cse.ohio-state.edu/~wenger
