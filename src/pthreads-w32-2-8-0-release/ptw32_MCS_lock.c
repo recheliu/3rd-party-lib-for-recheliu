@@ -89,13 +89,13 @@
  * }
  */
 
-#if	0	// TEST-MOD
-#include "implement.h"
+#if	0	// MOD-BY-LEETEN 04/21/2012-FROM:
+	#include "implement.h"
+	#include "pthread.h"
+#else		// MOD-BY-LEETEN 04/21/2012-TO:
 #include "pthread.h"
-#else
-#include "pthread.h"
 #include "implement.h"
-#endif
+#endif		// MOD-BY-LEETEN 04/21/2012-END
 
 /*
  * ptw32_mcs_flag_set -- notify another thread about an event.
