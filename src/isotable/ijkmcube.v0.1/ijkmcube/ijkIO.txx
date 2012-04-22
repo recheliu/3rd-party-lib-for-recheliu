@@ -180,88 +180,89 @@ namespace IJKIO {
     ijkoutOFF(cout, dim, coord, numv, simplex_vert, nums);
   }
 
-  template <class T> void ijkinOFF
-  (std::istream & in, int & dim, T * & coord, int & numv,
-   int * & simplex_vert, int & nums)
-    // input Geomview OFF files
-    // in = input stream
-    // dim = dimension
-    // coord[dim*i+k] = k'th coordinate of vertex j  (k < dim)
-    // numv = number of vertices 
-    // simplex_vert[dim*j+k] = k'th vertex index of simplex j
-    // nums = number of simplices
-  {
-    std::string header_line;
-    int nume;
+	#if	0	// DEL-BY-LEETEN 04/21/2012-BEGIN
+	  template <class T> void ijkinOFF
+	  (std::istream & in, int & dim, T * & coord, int & numv,
+	   int * & simplex_vert, int & nums)
+		// input Geomview OFF files
+		// in = input stream
+		// dim = dimension
+		// coord[dim*i+k] = k'th coordinate of vertex j  (k < dim)
+		// numv = number of vertices 
+		// simplex_vert[dim*j+k] = k'th vertex index of simplex j
+		// nums = number of simplices
+	  {
+		std::string header_line;
+		int nume;
 
-    ERROR error("ijkinOFF");
+		ERROR error("ijkinOFF");
 
-    coord = NULL;
-    simplex_vert = NULL;
+		coord = NULL;
+		simplex_vert = NULL;
 
-    // read input
-    header_line = "";
-    while (header_line == "" && !in.eof())
-      in >> header_line;
+		// read input
+		header_line = "";
+		while (header_line == "" && !in.eof())
+		  in >> header_line;
 
-    if (header_line == "OFF") {
-      dim = 3;
-    }
-    else if (header_line == "4OFF") {
-      dim = 4;
-    }
-    else if (header_line == "nOFF") {
-      in >> dim;
-    }
-    else {
-      std::string errmsg =  
-	"Illegal Geomview .off file header: " + header_line;
-      throw error(errmsg);
-    };
+		if (header_line == "OFF") {
+		  dim = 3;
+		}
+		else if (header_line == "4OFF") {
+		  dim = 4;
+		}
+		else if (header_line == "nOFF") {
+		  in >> dim;
+		}
+		else {
+		  std::string errmsg =  
+		"Illegal Geomview .off file header: " + header_line;
+		  throw error(errmsg);
+		};
 
-    if (dim < 1)
-      throw error("Dimension must be at least 1.");
+		if (dim < 1)
+		  throw error("Dimension must be at least 1.");
 
-    in >> numv;
-    in >> nums;
-    in >> nume;
+		in >> numv;
+		in >> nums;
+		in >> nume;
 
-    coord = new T[numv*dim];
-    for (int iv = 0; iv < numv; iv++) {
-      for (int d = 0; d < dim; d++) 
-	in >> vertex_coord[iv*dim + d];
-    };
+		coord = new T[numv*dim];
+		for (int iv = 0; iv < numv; iv++) {
+		  for (int d = 0; d < dim; d++) 
+		in >> vertex_coord[iv*dim + d];
+		};
 
-    simplex_vert = new int[nums*dim];
-    for (int is = 0; is < nums; is++) {
+		simplex_vert = new int[nums*dim];
+		for (int is = 0; is < nums; is++) {
 
-      int num_simplex_vert = 0;
-      in >> num_simplex_vert;
-      if (num_simplex_vert != dim) {
-	delete [] coord;
-	delete [] simplex_vert;
-	coord = NULL;
-	simplex_vert = NULL;
-	throw error("Wrong number of vertices in geomview polytope list.");
-      }
-      for (int d = 0; d < dim; d++)
-	in >> simplex_vert[is*dim + d];
-    };
-  }
+		  int num_simplex_vert = 0;
+		  in >> num_simplex_vert;
+		  if (num_simplex_vert != dim) {
+		delete [] coord;
+		delete [] simplex_vert;
+		coord = NULL;
+		simplex_vert = NULL;
+		throw error("Wrong number of vertices in geomview polytope list.");
+		  }
+		  for (int d = 0; d < dim; d++)
+		in >> simplex_vert[is*dim + d];
+		};
+	  }
 
-  template <class T> void ijkinOFF
-  (int & dim, T * & coord, int & numv, int * & simplex_vert, int & nums)
-    // input Geomview OFF format to standard input
-    // in = input stream
-    // dim = dimension
-    // coord[dim*i+k] = k'th coordinate of vertex j  (k < dim)
-    // numv = number of vertices 
-    // simplex_vert[dim*j+k] = k'th vertex index of simplex j
-    // nums = number of simplices
-  {
-    ijkinOFF(cin, dim, coord, numv, simplex_vert, nums);
-  }
-
+	  template <class T> void ijkinOFF
+	  (int & dim, T * & coord, int & numv, int * & simplex_vert, int & nums)
+		// input Geomview OFF format to standard input
+		// in = input stream
+		// dim = dimension
+		// coord[dim*i+k] = k'th coordinate of vertex j  (k < dim)
+		// numv = number of vertices 
+		// simplex_vert[dim*j+k] = k'th vertex index of simplex j
+		// nums = number of simplices
+	  {
+		ijkinOFF(cin, dim, coord, numv, simplex_vert, nums);
+	  }
+	#endif	// DEL-BY-LEETEN 04/21/2012-END
 }
 
 #endif
