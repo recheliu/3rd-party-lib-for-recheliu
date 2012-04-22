@@ -27,6 +27,8 @@
 // MOD-BY-LEETEN 04/21/2012-FROM:	#include <string.h>
 #include <string>
 // MOD-BY-LEETEN 04/21/2012-END
+#include <string.h>	// ADD-BY-LEETEN 04/21/2012
+
 
 #include "ijktable.h"
 
