@@ -272,7 +272,16 @@ _nrrdReadNrrdParse_sizes (FILE *file, Nrrd *nrrd,
   AIR_UNUSED(file);
   info = nio->line + nio->pos;
   _CHECK_HAVE_DIM;
-  ret = airParseStrZ(val, info, _nrrdFieldSep, nrrd->dim);
+	// MOD-BY-LEETEN 04/21/2012-FROM:		ret = airParseStrZ(val, info, _nrrdFieldSep, nrrd->dim);
+	{
+	unsigned int *puTemp = malloc(sizeof(puTemp[0]) * nrrd->dim); 
+	size_t d;
+	ret = airParseStrUI(puTemp, info, _nrrdFieldSep, nrrd->dim);
+	for(d = 0; d < nrrd->dim; d++)
+	  val[d] = puTemp[d];
+	free(puTemp);
+	}
+	// MOD-BY-LEETEN 04/21/2012-END
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, val);
   /* HEY: this is a very imperfect check of excess info */

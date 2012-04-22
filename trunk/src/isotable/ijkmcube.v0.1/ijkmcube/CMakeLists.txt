@@ -34,7 +34,11 @@ set_target_properties(ijktable PROPERTIES
 	RELEASE_OUTPUT_NAME "ijktable"
 )
 
-ADD_EXECUTABLE(ijkmcube ijkmcube.cxx)
+# MOD-BY-LEETEN 04/21/2012-FROM:	ADD_EXECUTABLE(ijkmcube ijkmcube.cxx)
+ADD_EXECUTABLE(ijkmcube 
+	ijkmcube.cxx
+	ijkIO.txx)
+# MOD-BY-LEETEN 04/21/2012-END
 if( DEFINED WIN32 )
 	target_link_libraries(ijkmcube
 		debug	ITKNrrdIOd	optimized	ITKNrrdIO
