@@ -188,7 +188,7 @@ end
 
 function data = adjustEndian(data, meta)
 
-[~,~,endian] = computer();
+[str,maxsize,endian] = computer();    % MOD-BY-LEETEN 07/03/2012-FROM: [~,~,endian] = computer();
 
 needToSwap = (isequal(endian, 'B') && isequal(lower(meta.endian), 'little')) || ...
              (isequal(endian, 'L') && isequal(lower(meta.endian), 'big'));
