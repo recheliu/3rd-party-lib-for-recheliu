@@ -28,14 +28,13 @@
 #include <lib3ds/vector.h>
 #include <lib3ds/light.h>
 #include <string.h>
-#include <config.h>
+// DEL-BY-LEETEN 07/12/2012-BEGIN:	#include <config.h>
 #include <stdlib.h>
 #include <math.h>
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
 #endif
-#include "glstub.h"
-
+#include <GL/glut.h>	// MOD-BY-LEETEN 07/12/2012:	#include "glstub.h"
 
 /*!
 \example player.c
