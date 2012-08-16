@@ -43,22 +43,22 @@ assert(isequal(theLine(1:4), 'NRRD'), 'Bad signature in file.')
 meta = struct([]);
 
 % Parse the file a line at a time.
-% TEST-MOD-FROM: while (true)
+% MOD-BY-LEETEN 08/16/2012-FROM: while (true)
 while (~feof(fid))
-% TEST-MOD-END
+% MOD-BY-LEETEN 08/16/2012-END
 
   theLine = fgetl(fid);
   
-  % TEST-MOD-FROM:  
+  % MOD-BY-LEETEN 08/16/2012-FROM:  
     %   if (isempty(theLine) || feof(fid))
     %     % End of the header.
     %     break;
     %   end
-  % TEST-MOD-TO:
+  % MOD-BY-LEETEN 08/16/2012-TO:
   if( isempty(theLine) )
       continue;
   end
-  % TEST-MOD-END
+  % MOD-BY-LEETEN 08/16/2012-END
   
   if (isequal(theLine(1), '#'))
       % Comment line.
@@ -78,7 +78,7 @@ while (~feof(fid))
   
 end
 
-fclose(fid); % TEST-ADD
+fclose(fid); % ADD-BY-LEETEN 08/16/2012
 
 datatype = getDatatype(meta.type);
 
@@ -93,15 +93,16 @@ dims = sscanf(meta.sizes, '%d');
 ndims = sscanf(meta.dimension, '%d');
 assert(numel(dims) == ndims);
 
-% TEST-ADD-BEGIN
+% ADD-BY-LEETEN 08/16/2012-BEGIN
 [pathstr, name, ext] = fileparts(filename);
 fid = fopen([pathstr filesep meta.datafile], 'rb');
-% TEST-ADD-END
+% ADD-BY-LEETEN 08/16/2012-END
 
 data = readData(fid, meta, datatype);
 data = adjustEndian(data, meta);
 
 % Reshape and get into MATLAB's order.
+data = data(1:prod(dims));  % ADD-BY-LEETEN 08/16/2012
 X = reshape(data, dims');
 X = permute(X, [2 1 3]);
 
