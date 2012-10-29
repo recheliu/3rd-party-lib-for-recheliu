@@ -28,7 +28,12 @@ endif()
 # ADD-BY-LEETEN 04/20/2012-END
 
 add_subdirectory(lib3ds-1.2.0)			# lib3ds
+# ADD-BY-LEETEN 10/29/2012-BEGIN
+if( DEFINED WIN32 ) 
+	include_directories(lib3ds-1.2.0) 
+# ADD-BY-LEETEN 10/29/2012-END
 add_subdirectory(lib3ds-1.2.0/examples)
+endif() # ADD-BY-LEETEN 10/29/2012
 # ADD-BY-LEETEN 04/20/2012-BEGIN
 # MOD-BY-LEETEN 04/21/2012-FROM:	if( DEFINED(WIN32) )
 # DEL-BY-LEETEN 07/09/2012-BEGIN
