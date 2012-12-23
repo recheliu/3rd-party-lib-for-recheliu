@@ -12,6 +12,9 @@ if( IS_LIB_STATIC )
 endif()
 
 add_subdirectory(zlib-1.2.6)			# zlib	
+# ADD-BY-LEETEN 12/22/2012-BEGIN
+message(WARNING "To build 64-bit version of zlib by Visual Stuido 2010: Please manually set up machine type to x64. ")
+# ADD-BY-LEETEN 12/22/2012-END
 if( WITH_OPENGL )	# ADD-BY-LEETEN 04/21/2012-BEGIN
 	add_subdirectory(freeglut-2.8.0) 		# freeglut
 	add_subdirectory(glui-2.36/src)			# glui
