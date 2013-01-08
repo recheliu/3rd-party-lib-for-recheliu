@@ -331,7 +331,9 @@ airOneLine(FILE *file, char *line, int size) {
   /* c is always set at least once, but not so for any char in line[]  */
   for (i=0;
        (i <= size-2              /* room for line[i] and \0 after that */
-        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
+		// MOD-BY-LEETEN 01/07/2013-FROM:        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
+        && EOF != (c=fgetc(file)) /* didn't hit EOF trying to read char */
+		// MOD-BY-LEETEN 01/07/2013-END
         && c != '\n');           /* char isn't newline */
        ++i) {
     line[i] = c;

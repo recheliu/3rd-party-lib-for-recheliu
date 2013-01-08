@@ -13,13 +13,20 @@ endif()
 
 add_subdirectory(zlib-1.2.6)			# zlib	
 # ADD-BY-LEETEN 12/22/2012-BEGIN
-message(WARNING "To build 64-bit version of zlib by Visual Stuido 2010: Please manually set up machine type to x64. ")
+# DEL-BY-LEETEN 01/07/2013:	message(WARNING "To build 64-bit version of zlib by Visual Stuido 2010: Please manually set up machine type to x64. ")
+# ADD-BY-LEETEN 01/07/2013-BEGIN
+include_directories(zlib-1.2.6)
+include_directories(${CMAKE_BINARY_DIR}/zlib-1.2.6)
+# ADD-BY-LEETEN 01/07/2013-END
 # ADD-BY-LEETEN 12/22/2012-END
 if( WITH_OPENGL )	# ADD-BY-LEETEN 04/21/2012-BEGIN
 	add_subdirectory(freeglut-2.8.0) 		# freeglut
 	add_subdirectory(glui-2.36/src)			# glui
 # ADD-BY-LEETEN 04/21/2012-BEGIN
 	add_dependencies(glui freeglut)
+	# ADD-BY-LEETEN 01/07/2013-BEGIN
+	set(GLUT_DIR ${PROJECT_SOURCE_DIR}/freeglut-2.8.0 CACHE PATH "Path of GLUT." FORCE)
+	# ADD-BY-LEETEN 01/07/2013-END
 endif()	
 # ADD-BY-LEETEN 04/21/2012-END
 
@@ -35,7 +42,7 @@ add_subdirectory(lib3ds-1.2.0)			# lib3ds
 if( DEFINED WIN32 ) 
 	include_directories(lib3ds-1.2.0) 
 # ADD-BY-LEETEN 10/29/2012-END
-add_subdirectory(lib3ds-1.2.0/examples)
+# DEL-BY-LEETEN 01/07/2013:	add_subdirectory(lib3ds-1.2.0/examples)
 endif() # ADD-BY-LEETEN 10/29/2012
 # ADD-BY-LEETEN 04/20/2012-BEGIN
 # MOD-BY-LEETEN 04/21/2012-FROM:	if( DEFINED(WIN32) )
