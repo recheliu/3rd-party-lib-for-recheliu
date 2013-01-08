@@ -113,9 +113,11 @@ set(ZLIB_SRCS
 )
 
 if(NOT MINGW)
-    set(ZLIB_SRCS ${ZLIB_SRCS}
-        win32/zlib1.rc # If present will override custom build rule below.
-    )
+	# # DEL-BY-LEETEN 01/07/2013-BEGIN 
+    # set(ZLIB_SRCS ${ZLIB_SRCS}
+        # win32/zlib1.rc # If present will override custom build rule below.
+    # )
+	# # DEL-BY-LEETEN 01/07/2013-END
 endif()
 
 # parse the full version number from zlib.h and include in ZLIB_FULL_VERSION
@@ -180,20 +182,22 @@ endif()
 # Example binaries
 #============================================================================
 
-add_executable(example test/example.c)
-target_link_libraries(example zlib)
-add_test(example example)
+# # DEL-BY-LEETEN 01/07/2013-BEGIN
+# add_executable(example test/example.c)
+# target_link_libraries(example zlib)
+# add_test(example example)
 
-add_executable(minigzip test/minigzip.c)
-target_link_libraries(minigzip zlib)
+# add_executable(minigzip test/minigzip.c)
+# target_link_libraries(minigzip zlib)
 
-if(HAVE_OFF64_T)
-    add_executable(example64 test/example.c)
-    target_link_libraries(example64 zlib)
-    set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-    add_test(example64 example64)
+# if(HAVE_OFF64_T)
+    # add_executable(example64 test/example.c)
+    # target_link_libraries(example64 zlib)
+    # set_target_properties(example64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+    # add_test(example64 example64)
 
-    add_executable(minigzip64 test/minigzip.c)
-    target_link_libraries(minigzip64 zlib)
-    set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-endif()
+    # add_executable(minigzip64 test/minigzip.c)
+    # target_link_libraries(minigzip64 zlib)
+    # set_target_properties(minigzip64 PROPERTIES COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
+# endif()
+# # DEL-BY-LEETEN 01/07/2013-END
