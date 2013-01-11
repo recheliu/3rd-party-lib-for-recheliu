@@ -332,7 +332,9 @@ airOneLine(FILE *file, char *line, int size) {
   for (i=0;
        (i <= size-2              /* room for line[i] and \0 after that */
 		// MOD-BY-LEETEN 01/07/2013-FROM:        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
-        && EOF != (c=fgetc(file)) /* didn't hit EOF trying to read char */
+		// MOD-BY-LEETEN 01/11/2013-FROM:        && EOF != (c=fgetc(file)) /* didn't hit EOF trying to read char */
+        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
+		// MOD-BY-LEETEN 01/11/2013-END
 		// MOD-BY-LEETEN 01/07/2013-END
         && c != '\n');           /* char isn't newline */
        ++i) {

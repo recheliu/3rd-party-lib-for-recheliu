@@ -49,9 +49,23 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	OUTPUT_NAME "${libfilename}"
 )
 
+# ADD-BY-LEETEN 01/11/2013-BEGIN
+if( DEFINED WIN32)
+	install(
+		TARGETS ${PROJECT_NAME}
+		ARCHIVE	DESTINATION	"lib/Debug"	CONFIGURATIONS	Debug
+		)	
+		
+	install(
+		TARGETS ${PROJECT_NAME}
+		ARCHIVE	DESTINATION	"lib/Release"	CONFIGURATIONS	Release
+		)	
+else()
+# ADD-BY-LEETEN 01/11/2013-END
 install(
 	TARGETS ${PROJECT_NAME}
 	ARCHIVE	DESTINATION	lib	)	
+endif()	# ADD-BY-LEETEN 01/11/2013
 
 install(
 	FILES ${GL_HEADER_FILES}
