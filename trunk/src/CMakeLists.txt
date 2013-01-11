@@ -2,7 +2,9 @@ cmake_minimum_required (VERSION 2.8)
 project (lib)
 
 set(IS_LIB_STATIC ON CACHE BOOL "Flag to decide whether static libraries are built.")
-set(WITH_NRRD OFF CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture.")
+# MOD-BY-LEETEN 01/11/2013-FROM:	set(WITH_NRRD OFF CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture.")
+set(WITH_NRRD ON CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture." FORCE)
+# MOD-BY-LEETEN 01/11/2013-END
 set(WITH_OPENGL OFF CACHE BOOL "Flag to decide whether OpenGL-related librarties are built. ") # ADD-BY-LEETEN 04/21/2012
 if( IS_LIB_STATIC )
 	set(IS_STATIC			ON	CACHE	BOOL	"Build static FREEGLUT." 	FORCE)	# freeglut
@@ -57,6 +59,11 @@ endif() # ADD-BY-LEETEN 10/29/2012
 # ADD-BY-LEETEN 04/21/2012-BEGIN
 add_subdirectory(isotable)
 # ADD-BY-LEETEN 04/21/2012-END
+
+# ADD-BY-LEETEN 01/11/2013-BEGIN
+set(IJK_DIR					${PROJECT_BINARY_DIR}	CACHE	PATH	"" 	FORCE)	
+set(LIBRARY_OUTPUT_PATH		${PROJECT_BINARY_DIR}/lib	CACHE	PATH	"" 	FORCE)	
+# ADD-BY-LEETEN 01/11/2013-ENDHeike Jänicke
 
 # DE:-BY-LEETEN 04/21/2012:	add_dependencies(glui freeglut)
 # add_dependencies(ITKNrrdIO zlib)	
