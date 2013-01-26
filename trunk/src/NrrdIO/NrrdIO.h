@@ -22,6 +22,7 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
+#pragma once	// ADD-BY-LEETEN 01/26/2013
 
 #include <stdio.h>
 #include <stdlib.h>
