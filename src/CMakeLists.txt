@@ -13,6 +13,8 @@ if( IS_LIB_STATIC )
 	set(IS_LIB3DS_STATIC	ON	CACHE	BOOL	"Build static lib3ds." 		FORCE)	# lib3ds
 endif()
 
+add_subdirectory(lodepng)				# ADD-BY-LEETEN 01/26/2013
+
 add_subdirectory(zlib-1.2.6)			# zlib	
 # ADD-BY-LEETEN 12/22/2012-BEGIN
 # DEL-BY-LEETEN 01/07/2013:	message(WARNING "To build 64-bit version of zlib by Visual Stuido 2010: Please manually set up machine type to x64. ")
