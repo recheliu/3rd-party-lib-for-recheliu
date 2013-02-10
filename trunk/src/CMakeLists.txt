@@ -67,6 +67,15 @@ set(IJK_DIR					${PROJECT_BINARY_DIR}	CACHE	PATH	"" 	FORCE)
 set(LIBRARY_OUTPUT_PATH		${PROJECT_BINARY_DIR}/lib	CACHE	PATH	"" 	FORCE)	
 # ADD-BY-LEETEN 01/11/2013-ENDHeike Jänicke
 
+# ADD-BY-LEETEN 02/10/2013-BEGIN
+# GLM
+# The CMake file in GLM is desigend to build the test programs.
+# Since only the headers are needed, the install rule is manually added here 
+install(
+	DIRECTORY	 glm-0.9.4.1/glm/
+	DESTINATION "include/glm")
+# ADD-BY-LEETEN 02/10/2013-END
+
 # DE:-BY-LEETEN 04/21/2012:	add_dependencies(glui freeglut)
 # add_dependencies(ITKNrrdIO zlib)	
 
