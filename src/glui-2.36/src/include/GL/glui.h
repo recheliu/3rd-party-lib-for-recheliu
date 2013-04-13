@@ -1713,11 +1713,13 @@ public:
 
     enum { HIST_SIZE = 100 };
 
+#ifdef _MSC_VER // ADD-BY-LEETEN 04/11/2013
     #if _MSC_VER < 1600	// MOD-BY-LEETEN 12/22/2012-FROM:	#ifdef _MSC_VER
     // Explicit template instantiation needed for dll
     template class GLUIAPI std::allocator<GLUI_String>;
     template class GLUIAPI std::vector<GLUI_String, std::allocator<GLUI_String> >;
     #endif
+#endif // #ifdef _MSC_VER // ADD-BY-LEETEN 04/11/2013
 
     std::vector<GLUI_String> hist_list;
     int  curr_hist;
