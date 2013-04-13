@@ -31,6 +31,15 @@ file(GLOB HEADER_FILES "src/*.h" )
 file(GLOB GL_HEADER_FILES "include/GL/*.h" )
 file(GLOB SOURCE_FILES "src/*.c" )
 
+# ADD-BY-LEETEN 04/11/2013-BEGIN
+if(NOT DEFINED WIN32)
+  add_definitions(
+    -DTARGET_HOST_POSIX_X11=1
+    -DHAVE_FCNTL_H=1
+    )
+endif()
+# ADD-BY-LEETEN 04/11/2013-END
+
 if( IS_STATIC )
 	add_library ( ${PROJECT_NAME} STATIC
 		${HEADER_FILES}
