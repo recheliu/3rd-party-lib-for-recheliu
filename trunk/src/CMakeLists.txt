@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.8)
-project (lib)
+# MOD-BY-LEETEN 2013/10/07-FROM:	project (lib)
+project(ThirdPartyLib)
+# MOD-BY-LEETEN 2013/10/07-END
 
 set(IS_LIB_STATIC ON CACHE BOOL "Flag to decide whether static libraries are built.")
 # MOD-BY-LEETEN 01/11/2013-FROM:	set(WITH_NRRD OFF CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture.")
@@ -82,6 +84,18 @@ install(
 # GLEW
 
 # LIB3DS
+
+# ADD-BY-LEETEN 2013/10/07-BEGIN
+configure_file (
+  "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  @ONLY
+  )
+
+install(
+	FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+	DESTINATION ".")
+# ADD-BY-LEETEN 2013/10/07-END
 
 #
 # $Log$

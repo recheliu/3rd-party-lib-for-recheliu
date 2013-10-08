@@ -1,0 +1,66 @@
+# This file packages OSUFlow as a CMake package. It can be configureed by the following variuables:
+#
+
+set(IS_STATIC		@IS_STATIC@)
+set(WITH_OPENGL		@WITH_OPENGL@)
+set(WITH_NRRD		@WITH_NRRD@)
+set(WITH_FREEGLUT	@FREEGLUT@)
+
+if(IS_STATIC)
+	set(CMAKE_EXE_LINKER_FLAGS	"${CMAKE_EXE_LINKER_FLAGS}	/NODEFAULTLIB:LIBCMT	/NODEFAULTLIB:LIBCMTD")
+endif()
+
+SET( ThirdPartyLib_LIBRARIES	)
+
+macro(add_lib default_lib debug_lib)
+	LIST(APPEND	ThirdPartyLib_LIBRARIES			
+		# TEST-DEL:	${default_lib}	
+		debug		${debug_lib}	
+		optimized	${default_lib})
+endmacro() 
+
+macro(add_static_lib static_default_lib static_debug_lib default_lib debug_lib )
+	if( IS_STATIC )
+		add_lib(${static_default_lib} 	${static_debug_lib})
+	else()
+		add_lib(${default_lib} 			${debug_lib})
+	endif()	
+endmacro() 
+
+
+set(ARCH	"")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(ARCH	"x64")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+	set(ARCH	"x32")
+endif()
+	
+LIST(APPEND ThirdPartyLib_INCLUDE_DIRS	"${ThirdPartyLib_DIR}/include")
+LIST(APPEND ThirdPartyLib_LIBRARY_DIRS	"${ThirdPartyLib_DIR}/lib")
+
+add_lib(ijktable 	ijktabled)
+add_lib(lodepng 	lodepngd)
+add_lib(zlib 		zlibd)
+
+add_static_lib(lib3ds-120s 		lib3ds-120sd	lib3ds-120 		lib3ds-120d)
+
+if( ${WITH_NRRD} )
+	add_lib(ITKNrrdIO 	ITKNrrdIOd)
+endif()
+
+if( WITH_OPENGL )
+	message(WARNING "Please setup GLEW path in your project and link to glew libraries.")
+	
+	if( WITH_FREEGLUT )
+		add_static_lib(freeglut_static	freeglut_static	freeglut	freeglut)
+		
+		add_lib(glui32_freeglut 	glui32d_freeglut)
+	else()
+		add_lib(glui32 			glui32d)
+	endif()
+endif()
+
+include_directories(${ThirdPartyLib_INCLUDE_DIRS})
+link_directories(${ThirdPartyLib_LIBRARY_DIRS})
+
+
