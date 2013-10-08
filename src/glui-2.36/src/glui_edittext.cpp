@@ -712,6 +712,7 @@ void    GLUI_EditText::draw_text( int x, int y )
       
     glRasterPos2i( text_x, 13);
     for( i=substring_start; i<=substring_end; i++ ) {
+		if( 0 <= i && i < text.length() )	// ADD-BY-LEETEN 2013/10/07
       glutBitmapCharacter( get_font(), this->text[i] );
     }
   }
@@ -814,6 +815,7 @@ void     GLUI_EditText::draw_insertion_pt( void )
 					 between the text and the box       **/
 
   for( i=substring_end; i>=insertion_pt; i-- ) {
+	  if( 0 <= i && i < text.length() )	// ADD-BY-LEETEN 2013/10/07
     curr_x -= char_width( text[i] ); 
   }  
 
@@ -846,6 +848,7 @@ int  GLUI_EditText::substring_width( int start, int end )
   width = 0;
 
   for( i=start; i<=end; i++ )
+	if( 0 <= i && i < text.length() )	// ADD-BY-LEETEN 2013/10/07
     width += char_width( text[i] ); 
 
   return width;
