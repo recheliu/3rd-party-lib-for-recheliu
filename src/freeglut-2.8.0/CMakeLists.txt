@@ -67,9 +67,9 @@ if( DEFINED WIN32)
 		ARCHIVE	DESTINATION	"lib/Release"	CONFIGURATIONS	Release
 		)	
 else()
-install(
-	TARGETS ${PROJECT_NAME}
-	ARCHIVE	DESTINATION	lib	)	
+	install(
+		TARGETS ${PROJECT_NAME}
+		ARCHIVE	DESTINATION	lib	)	
 endif()	
 
 install(
