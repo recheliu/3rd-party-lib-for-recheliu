@@ -31,14 +31,12 @@ file(GLOB HEADER_FILES "src/*.h" )
 file(GLOB GL_HEADER_FILES "include/GL/*.h" )
 file(GLOB SOURCE_FILES "src/*.c" )
 
-# ADD-BY-LEETEN 04/11/2013-BEGIN
 if(NOT DEFINED WIN32)
   add_definitions(
     -DTARGET_HOST_POSIX_X11=1
     -DHAVE_FCNTL_H=1
     )
 endif()
-# ADD-BY-LEETEN 04/11/2013-END
 
 if( IS_STATIC )
 	add_library ( ${PROJECT_NAME} STATIC
@@ -58,7 +56,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	OUTPUT_NAME "${libfilename}"
 )
 
-# ADD-BY-LEETEN 01/11/2013-BEGIN
 if( DEFINED WIN32)
 	install(
 		TARGETS ${PROJECT_NAME}
@@ -70,11 +67,10 @@ if( DEFINED WIN32)
 		ARCHIVE	DESTINATION	"lib/Release"	CONFIGURATIONS	Release
 		)	
 else()
-# ADD-BY-LEETEN 01/11/2013-END
 install(
 	TARGETS ${PROJECT_NAME}
 	ARCHIVE	DESTINATION	lib	)	
-endif()	# ADD-BY-LEETEN 01/11/2013
+endif()	
 
 install(
 	FILES ${GL_HEADER_FILES}

@@ -1,12 +1,8 @@
 cmake_minimum_required (VERSION 2.8)
-# MOD-BY-LEETEN 2013/10/07-FROM:	project (lib)
 project(ThirdPartyLib)
-# MOD-BY-LEETEN 2013/10/07-END
 
 set(IS_LIB_STATIC ON CACHE BOOL "Flag to decide whether static libraries are built.")
-# MOD-BY-LEETEN 01/11/2013-FROM:	set(WITH_NRRD OFF CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture.")
 set(WITH_NRRD ON CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture." FORCE)
-# MOD-BY-LEETEN 01/11/2013-END
 set(WITH_OPENGL OFF CACHE BOOL "Flag to decide whether OpenGL-related librarties are built. ") # ADD-BY-LEETEN 04/21/2012
 if( IS_LIB_STATIC )
 	set(IS_STATIC			ON	CACHE	BOOL	"Build static FREEGLUT." 	FORCE)	# freeglut
@@ -15,77 +11,46 @@ if( IS_LIB_STATIC )
 	set(IS_LIB3DS_STATIC	ON	CACHE	BOOL	"Build static lib3ds." 		FORCE)	# lib3ds
 endif()
 
-add_subdirectory(lodepng)				# ADD-BY-LEETEN 01/26/2013
+add_subdirectory(lodepng)				
 
 add_subdirectory(zlib-1.2.6)			# zlib	
-# ADD-BY-LEETEN 12/22/2012-BEGIN
-# DEL-BY-LEETEN 01/07/2013:	message(WARNING "To build 64-bit version of zlib by Visual Stuido 2010: Please manually set up machine type to x64. ")
-# ADD-BY-LEETEN 01/07/2013-BEGIN
 include_directories(zlib-1.2.6)
 include_directories(${CMAKE_BINARY_DIR}/zlib-1.2.6)
-# ADD-BY-LEETEN 01/07/2013-END
-# ADD-BY-LEETEN 12/22/2012-END
-if( WITH_OPENGL )	# ADD-BY-LEETEN 04/21/2012-BEGIN
+if( WITH_OPENGL )	
 	add_subdirectory(freeglut-2.8.0) 		# freeglut
 	add_subdirectory(glui-2.36/src)			# glui
-# ADD-BY-LEETEN 04/21/2012-BEGIN
 	add_dependencies(glui freeglut)
-	# ADD-BY-LEETEN 01/07/2013-BEGIN
 	set(GLUT_DIR ${PROJECT_SOURCE_DIR}/freeglut-2.8.0 CACHE PATH "Path of GLUT." FORCE)
-	# ADD-BY-LEETEN 01/07/2013-END
 endif()	
-# ADD-BY-LEETEN 04/21/2012-END
 
 # add_subdirectory(NrrdIO)				# ITKNrrdIO
-# ADD-BY-LEETEN 04/20/2012-BEGIN
 if( WITH_NRRD )
 	add_subdirectory(NrrdIO)			
 endif()
-# ADD-BY-LEETEN 04/20/2012-END
 
 add_subdirectory(lib3ds-1.2.0)			# lib3ds
-# ADD-BY-LEETEN 10/29/2012-BEGIN
 if( DEFINED WIN32 ) 
 	include_directories(lib3ds-1.2.0) 
-# ADD-BY-LEETEN 10/29/2012-END
-# DEL-BY-LEETEN 01/07/2013:	add_subdirectory(lib3ds-1.2.0/examples)
 endif() # ADD-BY-LEETEN 10/29/2012
-# ADD-BY-LEETEN 04/20/2012-BEGIN
-# MOD-BY-LEETEN 04/21/2012-FROM:	if( DEFINED(WIN32) )
-# DEL-BY-LEETEN 07/09/2012-BEGIN
-# if( DEFINED WIN32 )
-# # MOD-BY-LEETEN 04/21/2012-END
-	# add_subdirectory(pthreads-w32-2-8-0-release)	
-# endif()
-# DEL-BY-LEETEN 07/09/2012-END
-# ADD-BY-LEETEN 04/20/2012-END
 
-# ADD-BY-LEETEN 04/21/2012-BEGIN
 add_subdirectory(isotable)
-# ADD-BY-LEETEN 04/21/2012-END
 
-# ADD-BY-LEETEN 01/11/2013-BEGIN
 set(IJK_DIR					${PROJECT_BINARY_DIR}	CACHE	PATH	"" 	FORCE)	
 set(LIBRARY_OUTPUT_PATH		${PROJECT_BINARY_DIR}/lib	CACHE	PATH	"" 	FORCE)	
-# ADD-BY-LEETEN 01/11/2013-ENDHeike Jänicke
 
-# ADD-BY-LEETEN 02/10/2013-BEGIN
 # GLM
 # The CMake file in GLM is desigend to build the test programs.
 # Since only the headers are needed, the install rule is manually added here 
 install(
 	DIRECTORY	 glm-0.9.4.1/glm/
 	DESTINATION "include/glm")
-# ADD-BY-LEETEN 02/10/2013-END
 
-# DE:-BY-LEETEN 04/21/2012:	add_dependencies(glui freeglut)
 # add_dependencies(ITKNrrdIO zlib)	
 
 # GLEW
 
 # LIB3DS
 
-# ADD-BY-LEETEN 2013/10/07-BEGIN
 configure_file (
   "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in"
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -95,7 +60,6 @@ configure_file (
 install(
 	FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 	DESTINATION ".")
-# ADD-BY-LEETEN 2013/10/07-END
 
 #
 # $Log$

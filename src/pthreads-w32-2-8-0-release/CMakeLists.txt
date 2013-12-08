@@ -24,10 +24,8 @@ include_directories(
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
-	# MOD-BY-LEETEN 04/21/2012-FROM:	OUTPUT_NAME "${libfilename}"
 	DEBUG_OUTPUT_NAME 	"${libfilename}d"
 	RELEASE_OUTPUT_NAME "${libfilename}"
-	# MOD-BY-LEETEN 04/21/2012-END
 )
 
 install(
