@@ -16,16 +16,12 @@ SET(NRRD_LIBDIR "${IJK_DIR}/lib")
 
 INCLUDE_DIRECTORIES("${IJK_DIR}/include")
 LINK_DIRECTORIES("${NRRD_LIBDIR}")
-# DEL-BY-LEETEN 07/09/2012:		LINK_LIBRARIES(ITKNrrdIO z)
 
-# MOD-BY-LEETEN 07/09/2012-FROM:	ADD_EXECUTABLE(ijkmcube ijkmcube.cxx isosurfaceD.cxx ijktable.cxx)
 LIST(APPEND HEADER_FILES
 	isosurfaceD.h
 	ijktable.h
-	# ADD-BY-LEETEN 07/09/2012-BEGIN
 	ijkNrrd.h
 	ijkIO.txx
-	# ADD-BY-LEETEN 07/09/2012-END
 	)
 
 ADD_LIBRARY(ijktable 
@@ -38,11 +34,10 @@ set_target_properties(ijktable PROPERTIES
 	RELEASE_OUTPUT_NAME "ijktable"
 )
 
-# MOD-BY-LEETEN 04/21/2012-FROM:	ADD_EXECUTABLE(ijkmcube ijkmcube.cxx)
 ADD_EXECUTABLE(ijkmcube 
 	ijkmcube.cxx
 	ijkIO.txx)
-# MOD-BY-LEETEN 04/21/2012-END
+
 if( DEFINED WIN32 )
 	target_link_libraries(ijkmcube
 		debug	ITKNrrdIOd	optimized	ITKNrrdIO
@@ -58,10 +53,8 @@ target_link_libraries(ijkmcube
 	ijktable
 	)
 add_dependencies(ijkmcube ijktable)
-# MOD-BY-LEETEN 07/09/2012-END
 
 SET(CMAKE_INSTALL_PREFIX ${IJK_DIR})
-# MOD-BY-LEETEN 07/09/2012-FROM:	INSTALL(TARGETS ijkmcube DESTINATION "bin")
 install(
 	TARGETS ijktable
 	RUNTIME	DESTINATION "bin"
@@ -75,8 +68,4 @@ install(
 install(
 	FILES ${HEADER_FILES}
 	DESTINATION "include")
-# MOD-BY-LEETEN 07/09/2012-END
-
-
-# DEL-BY-LEETEN 07/09/2012:	ADD_CUSTOM_TARGET(tar WORKING_DIRECTORY .. COMMAND tar cvf ${IJKMCUBE_DIR}/ijkmcube.tar ${IJKMCUBE_DIR}/README ${IJKMCUBE_DIR}/*.cxx ${IJKMCUBE_DIR}/*.h ${IJKMCUBE_DIR}/*.txx ${IJKMCUBE_DIR}/CMakeLists.txt )
 

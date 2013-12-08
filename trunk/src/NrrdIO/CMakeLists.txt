@@ -91,17 +91,13 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_ZLIB=1)
 
 ADD_LIBRARY(ITKNrrdIO ${nrrdio_SRCS} )
-# ADD-BY-LEETEN 04/20/2012-BEGIN
 set_target_properties(ITKNrrdIO PROPERTIES 
 	DEBUG_OUTPUT_NAME 	"ITKNrrdIOd"
 	RELEASE_OUTPUT_NAME "ITKNrrdIO"
 )
-# ADD-BY-LEETEN 04/20/2012-END
-# MOD-BY-LEETEN 07/09/2012-FROM:	TARGET_LINK_LIBRARIES(ITKNrrdIO ${ITK_ZLIB_LIBRARIES} )
 TARGET_LINK_LIBRARIES(ITKNrrdIO 
 	debug	zlibd	optimized	zlib
 )
-# MOD-BY-LEETEN 07/09/2012-END
 
 #INSTALL_TARGETS(/lib/InsightToolkit ITKNrrdIO)
 #INSTALL_FILES(/include/InsightToolkit/Utilities/NrrdIO "(\\.h)$")
@@ -109,13 +105,6 @@ TARGET_LINK_LIBRARIES(ITKNrrdIO
 #################################################
 # IJK installation instructions
 #################################################
-
-# DEL-BY-LEETEN 04/20/2012-BEGIN
-	# IF (NOT CMAKE_BUILD_TYPE)
-	  # SET (CMAKE_BUILD_TYPE Release CACHE STRING 
-		   # "Default build type: Release" FORCE)
-	# ENDIF (NOT CMAKE_BUILD_TYPE)
-# DEL-BY-LEETEN 04/20/2012-END
 
 INSTALL(TARGETS ITKNrrdIO DESTINATION lib)
 INSTALL(FILES "NrrdIO.h" DESTINATION "include")

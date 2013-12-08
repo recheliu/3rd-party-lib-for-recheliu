@@ -36,7 +36,7 @@ else()
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
-  OUTPUT_NAME "${libfilename}" # ADD-BY-LEETEN 01/28/2013
+  OUTPUT_NAME "${libfilename}" 
 	DEBUG_OUTPUT_NAME 	"${libfilename}d"
 	RELEASE_OUTPUT_NAME "${libfilename}"
 )
