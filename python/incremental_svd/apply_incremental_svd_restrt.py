@@ -1,6 +1,9 @@
 import math;
 import matplotlib.pyplot as plt;
 import numpy as np;
+# ADD-BY-LEETEN 2014/04/19-BEGIN
+import scipy.linalg as la;
+# ADD-BY-LEETEN 2014/04/19-END
 import my_timer;
 import incremental_svd as inc_svd;
  
@@ -105,7 +108,12 @@ n_rows, n_cols = get_subfigure_layout(n_updates);
 
 print col_bases;
 
-plt.figure();
+# MOD-BY-LEETEN 2014/04/19:    plt.figure();
+s_fig = plt.figure();
+V_fig = plt.figure();
+V0_fig = plt.figure();
+D_fig = plt.figure();
+# MOD-BY-LEETEN 2014/04/19-END
 subfigi = 0;
 for col_base in col_bases:
     subfigi = subfigi + 1;
@@ -117,7 +125,9 @@ for col_base in col_bases:
     A = offset_mat[:, col_base:col_end];
     
     my_timer.tic(svd_timers);
-    U, s, V = inc_svd.addblock_svd_update(U, s, V, A, True);
+    # MOD-BY-LEETEN 2014/04/19:    U, s, V = inc_svd.addblock_svd_update(U, s, V, A, True);
+    U, s, V = inc_svd.addblock(U, s, V, A, True);
+    # MOD-BY-LEETEN 2014/04/19-END
     my_timer.toc(svd_timers);
 
     # Apply regular SVD as the reference.
@@ -128,10 +138,44 @@ for col_base in col_bases:
     my_timer.print_timers("[SVD]", svd_timers);
     
     # Now, compare with the singular values.
+    # ADD-BY-LEETEN 2014/04/19-BEGIN
+    plt.figure(V0_fig.number);
+    plt.subplot(n_rows, n_cols, subfigi); 
+    plt.pcolor(V0.T);
+    plt.xlim([0, n_restrts]);
+    plt.ylim([0, n_components]);
+
+    V_img = V;
+    for col in range(0, V.shape[1]):
+        v0 = V0[:, col];
+        v = V[:, col];
+        dist = la.norm(v - v0);
+        negate_dist = la.norm(-v - v0);
+        if( negate_dist < dist ):
+            V_img[:, col] = -v;
+            
+    plt.figure(V_fig.number);
+    plt.subplot(n_rows, n_cols, subfigi); 
+    plt.pcolor(V_img.T);
+    plt.xlim([0, n_restrts]);
+    plt.ylim([0, n_components]);
+
+    plt.figure(D_fig.number);
+    plt.subplot(n_rows, n_cols, subfigi); 
+    plt.pcolor(abs((V0 - V_img).T));
+    plt.xlim([0, n_restrts]);
+    plt.ylim([0, n_components]);
+
+    
+    plt.figure(s_fig.number);
+    # ADD-BY-LEETEN 2014/04/19-END
     plt.subplot(n_rows, n_cols, subfigi); 
     plt.plot(s0);
     plt.plot(s);
     plt.axis('tight');
+    # ADD-BY-LEETEN 2014/04/19-BEGIN
+    plt.yscale('log');  
+    # ADD-BY-LEETEN 2014/04/19-END
     plt.draw();
 my_timer.toc(timers);
 plt.draw();
