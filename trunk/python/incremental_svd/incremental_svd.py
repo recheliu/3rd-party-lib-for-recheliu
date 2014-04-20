@@ -37,6 +37,12 @@ def regular_svd_by_pca(K, k=0):
         tsp = tsp[0:k];
     return tUp, tsp, tVp;
 
+# ADD-BY-LEETEN 2014/04/19-BEGIN
+def orth(A):
+    U, s, V = regular_svd_by_pca(A, k=min(A.shape));
+    return U;
+# ADD-BY-LEETEN 2014/04/19-END
+
 # A wrapper of svd.
 # Otherwise, scipy.sparse.linals's svd cannot handle the case that the rank is equal to the min(#rows, #col).  
 def regular_svd(A, k=0):
@@ -57,9 +63,13 @@ def update( U, s, V, A, B, force_orth ):
     m = np.dot(U.T, A);
     p = A - np.dot(U, m);
 
-    P = la.orth( p );
+    # MOD-BY-LEETEN 2014/04/19:    P = la.orth( p );
+    P = orth( p );
+    # MOD-BY-LEETEN 2014/04/19-END
     # Pad with zeros if p does not have full rank.
-    P = np.hstack([P, np.zeros(P.shape[0], p.shape[1] - P.shape[1])]);
+    # MOD-BY-LEETEN 2014/04/19:    P = np.hstack([P, np.zeros(P.shape[0], p.shape[1] - P.shape[1])]);
+    P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
+    # MOD-BY-LEETEN 2014/04/19-END
 
     Ra = np.dot(P.T, p);
 
@@ -67,9 +77,13 @@ def update( U, s, V, A, B, force_orth ):
     n = np.dot(V.T, B);
     q = B - np.dot(V, n);
 
-    Q = la.orth( q );
+    # MOD-BY-LEETEN 2014/04/19:    Q = la.orth( q );
+    Q = orth(q);
+    # MOD-BY-LEETEN 2014/04/19-END
     # Pad with zeros if q does not have full rank.
-    Q = np.hstack([Q, np.zeros(Q.shape[0], q.shape[1] - Q.shape[1])]); 
+    # MOD-BY-LEETEN 2014/04/19:    Q = np.hstack([Q, np.zeros(Q.shape[0], q.shape[1] - Q.shape[1])]);
+    Q = np.pad(Q, ((0,0), (0, q.shape[1] - q.shape[1])), 'constant', constant_values=(0, 0));
+    # MOD-BY-LEETEN 2014/04/19-END 
 
     Rb = np.dot(Q.T, q);
  
@@ -77,7 +91,9 @@ def update( U, s, V, A, B, force_orth ):
     z = np.zeros( m.shape );
     z2 = np.zeros( [m.shape[1], m.shape[1]] );
 
-    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.vstack([m, Ra]) * np.hstack(n, Rb);
+    # MOD-BY-LEETEN 2014/04/19:    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.vstack([m, Ra]) * np.hstack(n, Rb);
+    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.dot(np.vstack([m, Ra]), np.hstack([n.T, Rb.T]));
+    # MOD-BY-LEETEN 2014/04/19-END
 
     # tUp, tsp, tVpT = sparsela.svds(sparse.bsr_matrix(K), k=current_rank );
     # tUp = tUp[:, ::-1];
@@ -96,8 +112,13 @@ def update( U, s, V, A, B, force_orth ):
     # want to force orthogonality every so often.
 
     if ( force_orth ):
-        UQ, UR = la.qr( Up, model='economic' );
-        VQ, VR = la.qr( Vp, model='economic' );
+        # # MOD-BY-LEETEN 2014/04/19-FROM:
+        # UQ, UR = la.qr( Up, model='economic' );
+        # VQ, VR = la.qr( Vp, model='economic' );
+        # # TO:
+        UQ, UR = la.qr( Up, mode='economic' );
+        VQ, VR = la.qr( Vp, mode='economic' );
+        # # MOD-BY-LEETEN 2014/04/19-END
         [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
         Up = np.dot(UQ, tUp);
         Vp = np.dot(VQ, tVp);
@@ -110,7 +131,10 @@ def update( U, s, V, A, B, force_orth ):
 # Based on http://web.mit.edu/~wingated/www/scripts/addblock_svd_update.m
 #
 
-def addblock_svd_update( U, s, V, A, force_orth ):
+# MOD-BY-LEETEN 2014/04/19:    def addblock_svd_update( U, s, V, A, force_orth ):
+def addblock( U, s, V, A, force_orth ):
+# MOD-BY-LEETEN 2014/04/19-END
+    
     current_rank = U.shape[1];
 
     # P is an orthogonal basis of the column-space
@@ -119,11 +143,12 @@ def addblock_svd_update( U, s, V, A, force_orth ):
     m = np.dot(U.T, A);
     p = A - np.dot(U, m);
 
-    P = la.orth( p );
+    # MOD-BY-LEETEN 2014/04/19:    P = la.orth( p );
+    P = orth( p );
+    # MOD-BY-LEETEN 2014/04/19-END
     # p may not have full rank.  If not, P will be too small.  Pad
     # with zeros.
     P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
-
     Ra = np.dot(P.T, p);
 
     #  
@@ -133,8 +158,6 @@ def addblock_svd_update( U, s, V, A, force_orth ):
     z = np.zeros( m.shape );
     K = np.vstack([np.hstack([np.diag(s), m]), np.hstack([z.T, Ra])]);
 
-    # % TEST-MOD-FROM: 
-    
     # # 2 options to solve the SVD of k:
     # # Use SVD, which can be still storage consuming.    
     # [tUp, tsp, tVpT] = sparsela.svds( sparse.bsr_matrix(K), current_rank );
@@ -181,3 +204,12 @@ def addblock_svd_update( U, s, V, A, force_orth ):
 
 # TODO: Port the rank one update too.
 # http://web.mit.edu/~wingated/www/scripts/rank_one_svd_update.m
+
+# ADD-BY-LEETEN 2014/04/19-BEGIN
+
+def my_addblock( U, s, V, A, force_orth ):
+    new_n_cols = A.shape[1];
+    V_padded = np.pad(V, ((0, new_n_cols), (0, 0)), 'constant', constant_values=(0, 0));
+    B = np.pad(np.eye(new_n_cols, new_n_cols), ((V.shape[0], 0), (0, 0)), 'constant', constant_values=(0, 0));
+    return update(U, s, V_padded, A, B, force_orth);
+# ADD-BY-LEETEN 2014/04/19-END
