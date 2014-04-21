@@ -11,8 +11,9 @@ import scipy.linalg as la;
 import scipy.sparse as sparse;
 import scipy.sparse.linalg as sparsela; 
 
-# If the matrix is very thin, using PCA will be fast. 
+# If the matrix is very thin, using PCA will be fast.
 def regular_svd_by_pca(K, k=0):
+    
     K_size = K.shape;
     if( K_size[0] < K_size[1] ):
         K_squared = np.dot(K, K.T);        
@@ -38,18 +39,36 @@ def regular_svd_by_pca(K, k=0):
     return tUp, tsp, tVp;
 
 # ADD-BY-LEETEN 2014/04/19-BEGIN
-def orth(A):
-    U, s, V = regular_svd_by_pca(A, k=min(A.shape));
-    return U;
+# # MOD-BY-LEETEN 2014/04/20-FROM:
+# def orth(A):
+#     U, s, V = regular_svd_by_pca(A, k=min(A.shape));
+#     return U;
+# # MOD-BY-LEETEN 2014/04/20-TO:
+def orth(A, threshold=1e-6):
+    U, s, V = regular_svd(A, k=min(A.shape));
+    return U[:, abs(s) > threshold];
+# # MOD-BY-LEETEN 2014/04/20-END
 # ADD-BY-LEETEN 2014/04/19-END
 
 # A wrapper of svd.
 # Otherwise, scipy.sparse.linals's svd cannot handle the case that the rank is equal to the min(#rows, #col).  
 def regular_svd(A, k=0):
+    # # MODBY-LEETEN 2014/04/20-FROM:
+    # if( k <= 0 or k >= min(A.shape) ):
+    #     return la.svd(A, full_matrices=False);
+    # else:    
+    #     return sparsela.svds(sparse.bsr_matrix(A), k = k);
+    # # MODBY-LEETEN 2014/04/20-TO:
     if( k <= 0 or k >= min(A.shape) ):
-        return la.svd(A, full_matrices=False);
+        U, s, VT = la.svd(A, full_matrices=False);
     else:    
-        return sparsela.svds(sparse.bsr_matrix(A), k = k);    
+        U, s, VT = sparsela.svds(sparse.bsr_matrix(A), k = k);
+        U = U[:,::-1];
+        s = s[::-1];
+        VT = VT[::-1, :];
+    return U, s, VT.T;
+    # # MODBY-LEETEN 2014/04/20-END
+    
 
 #! Given X = USV', compute SVD for X + A * B'.
 #
@@ -99,7 +118,9 @@ def update( U, s, V, A, B, force_orth ):
     # tUp = tUp[:, ::-1];
     # tSp = np.diag(tsp[::-1]); 
     # tVp = tVpT[::-1, :].T;
-    tUp, tsp, tVp = regular_svd_by_pca(K, k = current_rank);
+    # MOD-BY-LEETEN 2014/04/20:    tUp, tsp, tVp = regular_svd_by_pca(K, k = current_rank);
+    tUp, tsp, tVp = regular_svd(K, k = current_rank);
+    # MOD-BY-LEETEN 2014/04/20-END
   
     # update our matrices.
 
@@ -146,18 +167,33 @@ def addblock( U, s, V, A, force_orth ):
     # MOD-BY-LEETEN 2014/04/19:    P = la.orth( p );
     P = orth( p );
     # MOD-BY-LEETEN 2014/04/19-END
-    # p may not have full rank.  If not, P will be too small.  Pad
-    # with zeros.
-    P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
-    Ra = np.dot(P.T, p);
+    # # MOD-BY-LEETEN 2014/04/20-FROM:
+    # # p may not have full rank.  If not, P will be too small.  Pad
+    # # with zeros.
+    # P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
+    # Ra = np.dot(P.T, p);
+    # 
+    # #  
+    # # Diagonalize K, maintaining rank
+    # #
+    # 
+    # z = np.zeros( m.shape );
+    # K = np.vstack([np.hstack([np.diag(s), m]), np.hstack([z.T, Ra])]);
+    # # MOD-BY-LEETEN 2014/04/20-TO:
+    if( P.size > 0 ):
+        P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
+        Ra = np.dot(P.T, p);
 
-    #  
-    # Diagonalize K, maintaining rank
-    #
-
-    z = np.zeros( m.shape );
-    K = np.vstack([np.hstack([np.diag(s), m]), np.hstack([z.T, Ra])]);
-
+        #  
+        # Diagonalize K, maintaining rank
+        #
+    
+        z = np.zeros( m.shape );
+        K = np.vstack([np.hstack([np.diag(s), m]), np.hstack([z.T, Ra])]);
+    else:
+        K = np.hstack([np.diag(s), m]);
+    
+    # # MOD-BY-LEETEN 2014/04/20-END
     # # 2 options to solve the SVD of k:
     # # Use SVD, which can be still storage consuming.    
     # [tUp, tsp, tVpT] = sparsela.svds( sparse.bsr_matrix(K), current_rank );
@@ -166,7 +202,9 @@ def addblock( U, s, V, A, force_orth ):
     # tVp = tVpT[::-1, :].T;
 
     # Use PCA instead.
-    tUp, tsp, tVp = regular_svd_by_pca(K, k = current_rank);
+    # MOD-BY-LEETEN 2014/04/20:    tUp, tsp, tVp = regular_svd_by_pca(K, k = current_rank);
+    tUp, tsp, tVp = regular_svd(K, k = current_rank);
+    # MOD-BY-LEETEN 2014/04/20-END
 
     #
     # Now update our matrices!
@@ -213,3 +251,72 @@ def my_addblock( U, s, V, A, force_orth ):
     B = np.pad(np.eye(new_n_cols, new_n_cols), ((V.shape[0], 0), (0, 0)), 'constant', constant_values=(0, 0));
     return update(U, s, V_padded, A, B, force_orth);
 # ADD-BY-LEETEN 2014/04/19-END
+
+# TEST-ADD-BEGIN
+#! Given X = USV', compute SVD for X + a * b'.
+#
+# Based on http://web.mit.edu/~wingated/www/scripts/rank_one_svd_update.m
+#
+def rank_one_update( U, S, V, a, b, force_orth ):
+    current_rank = U.shape[1];
+
+    m = np.dot(U.T, a);
+    p = a - np.dot(U, m);
+    Ra = la.norm(p);
+    if( Ra > 1e-13 ):
+        P = p * (1 / Ra);
+    else:
+        P = np.zeros([0, 0]);
+        
+    # % Q is an orthogonal basis of the column-space
+    # % of (I-VV')b.
+    n = np.dot(V.T, b);
+    q = b - np.dot(V, n);
+    Rb = la.norm(q);
+    if ( Rb > 1e-13 ):
+        Q = q * (1.0 / Rb);
+    else:
+        Q = np.zeros([0, 0]);
+
+      
+    #  %
+    #  % Diagonalize K, maintaining rank
+    #  %
+
+    # % XXX note that this diagonal-plus-rank-one, so we should be able
+    # % to take advantage of the structure!
+    z = np.zeros( m.shape );
+
+    K = np.vstack([np.hstack([S, z]), np.hstack(z.T, 0)]) + np.vstack([m, Ra]) * np.hstack([n.T, Rb]);
+
+    tUp, tsp, tVp = regular_svd( K, current_rank );
+
+    # %
+    # % Now update our matrices!
+    # %
+  
+    sp = tsp;
+    
+    Up = np.dot(np.hstack([ U, P ]), tUp);
+    Vp = np.dot(np.hstack([ V, Q ]), tVp);
+    
+    # % The above rotations may not preserve orthogonality, so we explicitly
+    # % deal with that via a QR plus another SVD.  In a long loop, you may
+    # % want to force orthogonality every so often.
+
+    if ( force_orth ):
+        UQ, UR = la.qr( Up, mode='economic' );
+        VQ, VR = la.qr( Vp, mode='economic' );
+        [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
+        Up = np.dot(UQ, tUp);
+        Vp = np.dot(VQ, tVp);
+        sp = tsp;
+        
+    return [Up, sp, Vp];
+
+def add_vector( U, s, V, a, force_orth ):
+    V_padded = np.pad(V, ((0, 1), (0, 0)), 'constant', constant_values=(0, 0));
+    b = np.vstack(np.zeros([V.shape[0], 1]), 1);
+    return rank_one_update(U, s, V_padded, a, b, force_orth);
+
+# TEST-ADD-END
