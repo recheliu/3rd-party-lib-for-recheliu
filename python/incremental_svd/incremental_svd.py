@@ -101,18 +101,24 @@ def update( U, s, V, A, B, force_orth ):
     # MOD-BY-LEETEN 2014/04/19-END
     # Pad with zeros if q does not have full rank.
     # MOD-BY-LEETEN 2014/04/19:    Q = np.hstack([Q, np.zeros(Q.shape[0], q.shape[1] - Q.shape[1])]);
-    Q = np.pad(Q, ((0,0), (0, q.shape[1] - q.shape[1])), 'constant', constant_values=(0, 0));
+    # MOD-BY-LEETEN 2014/04/21:    Q = np.pad(Q, ((0,0), (0, q.shape[1] - q.shape[1])), 'constant', constant_values=(0, 0));
+    Q = np.pad(Q, ((0,0), (0, q.shape[1] - Q.shape[1])), 'constant', constant_values=(0, 0));
+    # MOD-BY-LEETEN 2014/04/21-END
     # MOD-BY-LEETEN 2014/04/19-END 
 
     Rb = np.dot(Q.T, q);
- 
-    # Diagonalize K, maintaining rank.
-    z = np.zeros( m.shape );
-    z2 = np.zeros( [m.shape[1], m.shape[1]] );
 
-    # MOD-BY-LEETEN 2014/04/19:    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.vstack([m, Ra]) * np.hstack(n, Rb);
-    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.dot(np.vstack([m, Ra]), np.hstack([n.T, Rb.T]));
-    # MOD-BY-LEETEN 2014/04/19-END
+    # # MOD-BY-LEETEN 2014/04/21-FROM: 
+    # # Diagonalize K, maintaining rank.
+    # z = np.zeros( m.shape );
+    # z2 = np.zeros( [m.shape[1], m.shape[1]] );
+    # 
+    # # MOD-BY-LEETEN 2014/04/19:    K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.vstack([m, Ra]) * np.hstack(n, Rb);
+    # K = np.vstack([np.hstack([np.diag(s), z]), np.hstack([z.T, z2])]) + np.dot(np.vstack([m, Ra]), np.hstack([n.T, Rb.T]));
+    # # MOD-BY-LEETEN 2014/04/19-END
+    # # MOD-BY-LEETEN 2014/04/21-TO:
+    K = np.pad(np.diag(s), ((0, m.shape[1]), (0, m.shape[1])), 'constant', constant_values=(0, 0)) + np.dot(np.vstack([m, Ra]), np.hstack([n.T, Rb.T]));
+    # # MOD-BY-LEETEN 2014/04/21-END
 
     # tUp, tsp, tVpT = sparsela.svds(sparse.bsr_matrix(K), k=current_rank );
     # tUp = tUp[:, ::-1];
@@ -137,13 +143,17 @@ def update( U, s, V, A, B, force_orth ):
         # UQ, UR = la.qr( Up, model='economic' );
         # VQ, VR = la.qr( Vp, model='economic' );
         # # TO:
-        UQ, UR = la.qr( Up, mode='economic' );
-        VQ, VR = la.qr( Vp, mode='economic' );
-        # # MOD-BY-LEETEN 2014/04/19-END
-        [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
-        Up = np.dot(UQ, tUp);
-        Vp = np.dot(VQ, tVp);
-        sp = tsp;
+        # # MOD-BY-LEETEN 2014/04/21-FROM:
+        # UQ, UR = la.qr( Up, mode='economic' );
+        # VQ, VR = la.qr( Vp, mode='economic' );
+        # # # MOD-BY-LEETEN 2014/04/19-END
+        # [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
+        # Up = np.dot(UQ, tUp);
+        # Vp = np.dot(VQ, tVp);
+        # sp = tsp;
+        # # MOD-BY-LEETEN 2014/04/21-TO:
+        Up, sp, Vp = re_orth(Up, sp, Vp);
+        # # MOD-BY-LEETEN 2014/04/21-END
   
     return [Up, sp, Vp];
 
@@ -217,7 +227,9 @@ def addblock( U, s, V, A, force_orth ):
     Up = np.dot(np.hstack([U, P]), tUp);   
 
     # Exploit structure to compute this fast: Vp = [ V Q ] * tVp;
-    if( 0 != len(V) ): 
+    # MOD-BY-LEETEN 2014/04/21:    if( 0 != len(V) ): 
+    if( 0 != V.size ):
+    # MOD-BY-LEETEN 2014/04/21-END
         Vp = np.dot(V, tVp[0:current_rank, : ]);
     else:
         Vp = np.zeros([0, 0]);
@@ -231,12 +243,16 @@ def addblock( U, s, V, A, force_orth ):
     # want to force orthogonality every so often.
 
     if ( force_orth ):
-        UQ, UR = la.qr( Up, mode='economic' );
-        VQ, VR = la.qr( Vp, mode='economic' );
-        [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
-        Up = np.dot(UQ, tUp);
-        Vp = np.dot(VQ, tVp);
-        sp = tsp;
+        # # MOD-BY-LEETEN 2014/04/21-FROM:
+        # UQ, UR = la.qr( Up, mode='economic' );
+        # VQ, VR = la.qr( Vp, mode='economic' );
+        # [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
+        # Up = np.dot(UQ, tUp);
+        # Vp = np.dot(VQ, tVp);
+        # sp = tsp;
+        # # TO:
+        Up, sp, Vp = re_orth(Up, sp, Vp);
+        # # MOD-BY-LEETEN 2014/04/21-END
 
     return [Up, sp, Vp];
 
@@ -252,19 +268,27 @@ def my_addblock( U, s, V, A, force_orth ):
     return update(U, s, V_padded, A, B, force_orth);
 # ADD-BY-LEETEN 2014/04/19-END
 
-# TEST-ADD-BEGIN
+# ADD-BY-LEETEN 2014/04/21-BEGIN
 #! Given X = USV', compute SVD for X + a * b'.
 #
 # Based on http://web.mit.edu/~wingated/www/scripts/rank_one_svd_update.m
 #
-def rank_one_update( U, S, V, a, b, force_orth ):
+def rank_one_update( U, s, V, a, b, force_orth ):
+
     current_rank = U.shape[1];
 
+    K = np.diag(s);
+    
     m = np.dot(U.T, a);
     p = a - np.dot(U, m);
-    Ra = la.norm(p);
-    if( Ra > 1e-13 ):
-        P = p * (1 / Ra);
+    # P = p / la.norm(p);
+    # Ra = np.dot(P.T, p);
+    p_norm = la.norm(p); 
+    if (p_norm  > 1e-6 ):
+        P = p / p_norm;
+        Ra = np.dot(P.T, p);
+        K = np.pad(K, ((0, 1), (0, 0)), 'constant', constant_values=(0,0));
+        m = np.append(m, Ra);
     else:
         P = np.zeros([0, 0]);
         
@@ -272,23 +296,21 @@ def rank_one_update( U, S, V, a, b, force_orth ):
     # % of (I-VV')b.
     n = np.dot(V.T, b);
     q = b - np.dot(V, n);
-    Rb = la.norm(q);
-    if ( Rb > 1e-13 ):
-        Q = q * (1.0 / Rb);
+    # Q = q / la.norm(q);
+    # Rb = np.dot(Q.T, q);
+    q_norm = la.norm(q); 
+    if (q_norm  > 1e-6 ):
+        Q = q / q_norm;
+        Rb = np.dot(Q.T, q);
+        K = np.pad(K, ((0, 0), (0, 1)), 'constant', constant_values=(0,0));
+        n = np.append(n, Rb);
     else:
         Q = np.zeros([0, 0]);
 
-      
     #  %
     #  % Diagonalize K, maintaining rank
     #  %
-
-    # % XXX note that this diagonal-plus-rank-one, so we should be able
-    # % to take advantage of the structure!
-    z = np.zeros( m.shape );
-
-    K = np.vstack([np.hstack([S, z]), np.hstack(z.T, 0)]) + np.vstack([m, Ra]) * np.hstack([n.T, Rb]);
-
+    K = K + np.dot(m.reshape(-1, 1), n.reshape(-1, 1).T);
     tUp, tsp, tVp = regular_svd( K, current_rank );
 
     # %
@@ -296,27 +318,33 @@ def rank_one_update( U, S, V, a, b, force_orth ):
     # %
   
     sp = tsp;
-    
-    Up = np.dot(np.hstack([ U, P ]), tUp);
-    Vp = np.dot(np.hstack([ V, Q ]), tVp);
+    if( P.size > 0 ):
+        Up = np.dot(np.hstack([U, P.reshape(-1, 1)]), tUp);
+    else:
+        Up = np.dot(U, tUp);
+        
+    if( Q.size > 0 ):
+        Vp = np.dot(np.hstack([V, Q.reshape(-1, 1)]), tVp);
+    else:
+        Vp = np.dot(V, tVp);
     
     # % The above rotations may not preserve orthogonality, so we explicitly
     # % deal with that via a QR plus another SVD.  In a long loop, you may
     # % want to force orthogonality every so often.
 
     if ( force_orth ):
-        UQ, UR = la.qr( Up, mode='economic' );
-        VQ, VR = la.qr( Vp, mode='economic' );
-        [tUp, tsp, tVp] = la.svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
-        Up = np.dot(UQ, tUp);
-        Vp = np.dot(VQ, tVp);
-        sp = tsp;
+        Up, sp, Vp = re_orth(Up, sp, Vp);
         
     return [Up, sp, Vp];
 
-def add_vector( U, s, V, a, force_orth ):
+def re_orth(Up, sp, Vp):
+    UQ, UR = la.qr( Up, mode='economic' );
+    VQ, VR = la.qr( Vp, mode='economic' );
+    [tUp, tsp, tVp] = regular_svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
+    return np.dot(UQ, tUp), tsp, np.dot(VQ, tVp);
+    
+def addvector( U, s, V, a, force_orth ):
     V_padded = np.pad(V, ((0, 1), (0, 0)), 'constant', constant_values=(0, 0));
-    b = np.vstack(np.zeros([V.shape[0], 1]), 1);
-    return rank_one_update(U, s, V_padded, a, b, force_orth);
-
-# TEST-ADD-END
+    b = np.pad(np.eye(1, 1), ((V.shape[0], 0), (0, 0)), 'constant', constant_values=(0, 0));
+    return rank_one_update(U, s, V_padded, a, b, force_orth);    
+# ADD-BY-LEETEN 2014/04/21-END
