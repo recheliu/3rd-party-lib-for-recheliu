@@ -15,6 +15,15 @@ def parse_restrt_header(header_line):
     if( 1 == len(header_tokens) ):
         header_tokens.append("0.0");
     return header_tokens;
+
+# ADD-BY-LEETEN 2014-04-21-BEGIN
+def plot_V(fig, V, vmin = -1, vmax = +1):
+    plt.figure(fig.number);
+    plt.subplot(n_rows, n_cols, subfigi); 
+    plt.pcolor(V.T, vmin = vmin, vmax = vmax);
+    plt.xlim([0, n_restrts]);
+    plt.ylim([0, n_components]);
+# ADD-BY-LEETEN 2014-04-21-END
     
 restrt_filepath_pattern = "D:/data/mm/Amber_GPU_Benchmark_Suite/PME/JAC_production_NVE/restrt1/restrt1_%d"
 
@@ -36,6 +45,11 @@ n_default_dof = 6;
 n_components = n_default_dof + n_modes * n_coords_per_atom;
 n_training_atoms = 2000;
 n_training_coords = n_training_atoms * n_coords_per_atom;
+
+# ADD-BY-LEETEN 2014-04-21-BEGIN
+n_update_cols = n_components; 
+n_init_cols = n_components;
+# ADD-BY-LEETEN 2014-04-21-END
 
 # Compute the pattern of NaN in Amber (*********), and the replacing token (NaN).  
 missing_atom_token = "";
@@ -81,7 +95,9 @@ for ri in range(0, n_restrts):
     if( coord_mat == None ):
         coord_mat = coord_vector;
     else:
-        coord_mat = np.append(coord_mat, coord_vector, axis=1);
+        # MOD-BY-LEETEN 2014-04-21: coord_mat = np.append(coord_mat, coord_vector, axis=1);
+        coord_mat = np.hstack([coord_mat, coord_vector]);
+        # MOD-BY-LEETEN 2014-04-21-END
 
 coord_mean = np.mean(coord_mat, axis=1);
 coord_mean_mat = np.reshape(coord_mean, [len(coord_mean), 1]) * np.ones([1, coord_mat.shape[1]]);
@@ -93,11 +109,16 @@ offset_mat = offset_mat[0:n_training_coords, :];
 
 #############################################################
 # incremental SVD.
-n_update_cols = n_components; 
-n_init_cols = n_components;
+
+# # DEL-BY-LEETEN 2014-04-21-BEGIN
+# n_update_cols = n_components; 
+# n_init_cols = n_components;
+# # DEL-BY-LEETEN 2014-04-21-END
 
 my_timer.tic(timers);
-U, s, V = inc_svd.regular_svd_by_pca(offset_mat[:, 0:n_init_cols], k = n_components);
+# MOD-BY-LEETEN 2014-04-21:    U, s, V = inc_svd.regular_svd_by_pca(offset_mat[:, 0:n_init_cols], k = n_components);
+U, s, V = inc_svd.regular_svd(offset_mat[:, 0:n_init_cols], k = n_components);
+# MOD-BY-LEETEN 2014-04-21-END
 my_timer.toc(timers);
 
 my_timer.tic(timers);
@@ -106,7 +127,7 @@ col_bases = range(n_init_cols, offset_mat.shape[1], n_update_cols );
 n_updates = len(col_bases);
 n_rows, n_cols = get_subfigure_layout(n_updates);
 
-print col_bases;
+# DEL-BY-LEETEN 2014/04/21:    print col_bases;
 
 # MOD-BY-LEETEN 2014/04/19:    plt.figure();
 s_fig = plt.figure();
@@ -123,49 +144,69 @@ for col_base in col_bases:
     offset_mat_for_svd = offset_mat[:, 0:col_end]; 
 
     A = offset_mat[:, col_base:col_end];
-    
+
     my_timer.tic(svd_timers);
     # MOD-BY-LEETEN 2014/04/19:    U, s, V = inc_svd.addblock_svd_update(U, s, V, A, True);
     U, s, V = inc_svd.addblock(U, s, V, A, True);
-    # MOD-BY-LEETEN 2014/04/19-END
     my_timer.toc(svd_timers);
 
     # Apply regular SVD as the reference.
     my_timer.tic(svd_timers);
-    U0, s0, V0 = inc_svd.regular_svd_by_pca(offset_mat_for_svd, k = n_components);
+    # MOD-BY-LEETEN 2014-04-21:    U0, s0, V0 = inc_svd.regular_svd_by_pca(offset_mat_for_svd, k = n_components);
+    U0, s0, V0 = inc_svd.regular_svd(offset_mat_for_svd, k = n_components);
+    # MOD-BY-LEETEN 2014-04-21-END
     my_timer.toc(svd_timers);
 
     my_timer.print_timers("[SVD]", svd_timers);
     
     # Now, compare with the singular values.
+    
     # ADD-BY-LEETEN 2014/04/19-BEGIN
-    plt.figure(V0_fig.number);
-    plt.subplot(n_rows, n_cols, subfigi); 
-    plt.pcolor(V0.T);
-    plt.xlim([0, n_restrts]);
-    plt.ylim([0, n_components]);
+    # # MOD-BY-LEETEN 2014-04-21-FROM:
+    # plt.figure(V0_fig.number);
+    # plt.subplot(n_rows, n_cols, subfigi); 
+    # plt.pcolor(V0.T);
+    # plt.xlim([0, n_restrts]);
+    # plt.ylim([0, n_components]);
+    # 
+    # V_img = V;
+    # for col in range(0, V.shape[1]):
+    #     v0 = V0[:, col];
+    #     v = V[:, col];
+    #     dist = la.norm(v - v0);
+    #     negate_dist = la.norm(-v - v0);
+    #     if( negate_dist < dist ):
+    #         V_img[:, col] = -v;
+    #         
+    # plt.figure(V_fig.number);
+    # plt.subplot(n_rows, n_cols, subfigi); 
+    # plt.pcolor(V_img.T);
+    # plt.xlim([0, n_restrts]);
+    # plt.ylim([0, n_components]);
+    # 
+    # plt.figure(D_fig.number);
+    # plt.subplot(n_rows, n_cols, subfigi); 
+    # plt.pcolor(abs((V0 - V_img).T));
+    # plt.xlim([0, n_restrts]);
+    # plt.ylim([0, n_components]);
 
-    V_img = V;
-    for col in range(0, V.shape[1]):
-        v0 = V0[:, col];
-        v = V[:, col];
-        dist = la.norm(v - v0);
-        negate_dist = la.norm(-v - v0);
+    # # MOD-BY-LEETEN 2014-04-21-TO:
+
+    P = V; # np.dot(V, np.diag(s));
+    P0 = V0; # np.dot(V0, np.diag(s0));
+    for col in range(0, P.shape[1]):
+        p0 = P0[:, col];
+        p = P[:, col];
+        dist = la.norm(p - p0);
+        negate_dist = la.norm(-p - p0);
         if( negate_dist < dist ):
-            V_img[:, col] = -v;
-            
-    plt.figure(V_fig.number);
-    plt.subplot(n_rows, n_cols, subfigi); 
-    plt.pcolor(V_img.T);
-    plt.xlim([0, n_restrts]);
-    plt.ylim([0, n_components]);
+            P[:, col] = -p;
+    P_diff = np.absolute(P - P0);
 
-    plt.figure(D_fig.number);
-    plt.subplot(n_rows, n_cols, subfigi); 
-    plt.pcolor(abs((V0 - V_img).T));
-    plt.xlim([0, n_restrts]);
-    plt.ylim([0, n_components]);
-
+    plot_V(V0_fig, P0);            
+    plot_V(V_fig, P);            
+    plot_V(D_fig, P_diff, vmin = 0, vmax = 1);
+    # MOD-BY-LEETEN 2014-04-21-END
     
     plt.figure(s_fig.number);
     # ADD-BY-LEETEN 2014/04/19-END
