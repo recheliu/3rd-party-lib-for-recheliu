@@ -348,3 +348,15 @@ def addvector( U, s, V, a, force_orth ):
     b = np.pad(np.eye(1, 1), ((V.shape[0], 0), (0, 0)), 'constant', constant_values=(0, 0));
     return rank_one_update(U, s, V_padded, a, b, force_orth);    
 # ADD-BY-LEETEN 2014/04/21-END
+
+# ADD-BY-LEETEN 2014/04/24-BEGIN
+#! Apply hotelling transform to cancel translation/rotation of the entire system.
+#
+def apply_hotelling_transform(coord_mat):
+    coord_mean = np.mean(coord_mat, axis=1);
+    coord_mean_mat = np.reshape(coord_mean, [len(coord_mean), 1]) * np.ones([1, coord_mat.shape[1]]);
+    offset_mat = coord_mat - coord_mean_mat;
+    U, s, V = regular_svd(offset_mat);
+    return np.dot(U.T, offset_mat);
+# ADD-BY-LEETEN 2014/04/24-END
+    

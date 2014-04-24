@@ -38,12 +38,19 @@ n_training_atoms = 2000;
 n_update_cols = 200; 
 n_init_cols = 200;
 
+# ADD-BY-LEETEN 2014/04/24-BEGIN
+with_hotelling_transform = False;
+# ADD-BY-LEETEN 2014/04/24-END
+
 parser = OptionParser()
 parser.add_option("--restrtFilepathPrefix", default=restrt_filepath_pattern);
 parser.add_option("--nrOfRestrts",          default=n_restrts, type=int);
 parser.add_option("--restrtBegin",            default=step_begin, type=int);
 parser.add_option("--restrtStep",         default=step, type=int);
 parser.add_option("--withGroundTruth",      action="store_true", dest = "withGroundTruth");
+# ADD-BY-LEETEN 2014/04/24-BEGIN
+parser.add_option("--withHotellingTransform",      action="store_true", dest = "withHotellingTransform");
+# ADD-BY-LEETEN 2014/04/24-END
 parser.add_option("--nrOfComponents",       default=n_components, type=int);
 parser.add_option("--nrOfUpdateColumns",    default=n_update_cols, type=int);
 parser.add_option("--nrOfInitColumns",      default=n_init_cols, type=int);
@@ -55,6 +62,9 @@ n_restrts = options.nrOfRestrts;
 step_begin = options.restrtBegin;
 step = options.restrtStep;
 with_ground_truth = options.withGroundTruth;
+# ADD-BY-LEETEN 2014/04/24-BEGIN
+with_hotelling_transform = options.withHotellingTransform;
+# ADD-BY-LEETEN 2014/04/24-END
 n_components = options.nrOfComponents;
 n_update_cols = options.nrOfUpdateColumns;
 n_init_cols = options.nrOfInitColumns;
@@ -80,7 +90,16 @@ for ri in range(0, n_restrts):
     restrt_filepath = restrt_filepath_pattern % current_step;
     coord_vector = my_md.read_restrt_coord(restrt_filepath);
     
+    # ADD-BY-LEETEN 2014/04/24-BEGIN
+    if( with_hotelling_transform ):
+        # Apply hotelling transform to cancel translation/rotation of the entire system.
+        local_mat = coord_vector.reshape(n_coords_per_atom, -1, order='F');
+        transformed_coord = inc_svd.apply_hotelling_transform(local_mat);
+        coord_vector = transformed_coord.reshape(-1, 1, order='F');
+    # ADD-BY-LEETEN 2014/04/24-END
+    
     coord_vector = coord_vector[0:n_training_coords];
+    
     if( coord_mat == None ):
         coord_mat = coord_vector;
     else:
