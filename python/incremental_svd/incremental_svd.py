@@ -6,6 +6,9 @@
 #
 # Teng-Yok Lee, 2014/04/19.
 
+# ADD-BY-LEETEN 2014/04/28-BEGIN
+import sys;
+# ADD-BY-LEETEN 2014/04/28-END
 import numpy as np;
 import scipy.linalg as la;
 import scipy.sparse as sparse;
@@ -66,7 +69,20 @@ def regular_svd(A, k=0):
         U = U[:,::-1];
         s = s[::-1];
         VT = VT[::-1, :];
-    return U, s, VT.T;
+        
+    # MOD-BY-LEETEN 2014-04-28-FROM:    return U, s, VT.T;
+    V = VT.T;
+    
+    # If the actual rank is smaller than k, part of the metrics will be nan.
+    if( not np.all(np.isfinite(s)) ):
+        print >> sys.stderr, "[WARN] regular_svd: s has non-finite numbers."
+        finite_indices = np.isfinite(s);
+        U = U[:, finite_indices]; 
+        s = s[finite_indices]; 
+        V = V[:, finite_indices];
+    return U, s, V; 
+    # MOD-BY-LEETEN 2014-04-28-END        
+    
     # # MODBY-LEETEN 2014/04/20-END
     
 
@@ -85,11 +101,12 @@ def update( U, s, V, A, B, force_orth ):
     # MOD-BY-LEETEN 2014/04/19:    P = la.orth( p );
     P = orth( p );
     # MOD-BY-LEETEN 2014/04/19-END
+    
     # Pad with zeros if p does not have full rank.
     # MOD-BY-LEETEN 2014/04/19:    P = np.hstack([P, np.zeros(P.shape[0], p.shape[1] - P.shape[1])]);
     P = np.pad(P, ((0,0), (0, p.shape[1] - P.shape[1])), 'constant', constant_values=(0, 0));
     # MOD-BY-LEETEN 2014/04/19-END
-
+    
     Ra = np.dot(P.T, p);
 
     #: Q: An orthogonal basis of the column-space of (I-VV')b.
@@ -99,6 +116,7 @@ def update( U, s, V, A, B, force_orth ):
     # MOD-BY-LEETEN 2014/04/19:    Q = la.orth( q );
     Q = orth(q);
     # MOD-BY-LEETEN 2014/04/19-END
+    
     # Pad with zeros if q does not have full rank.
     # MOD-BY-LEETEN 2014/04/19:    Q = np.hstack([Q, np.zeros(Q.shape[0], q.shape[1] - Q.shape[1])]);
     # MOD-BY-LEETEN 2014/04/21:    Q = np.pad(Q, ((0,0), (0, q.shape[1] - q.shape[1])), 'constant', constant_values=(0, 0));
@@ -127,7 +145,7 @@ def update( U, s, V, A, B, force_orth ):
     # MOD-BY-LEETEN 2014/04/20:    tUp, tsp, tVp = regular_svd_by_pca(K, k = current_rank);
     tUp, tsp, tVp = regular_svd(K, k = current_rank);
     # MOD-BY-LEETEN 2014/04/20-END
-  
+    
     # update our matrices.
 
     sp = tsp;
