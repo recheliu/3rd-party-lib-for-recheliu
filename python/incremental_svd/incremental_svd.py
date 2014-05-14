@@ -40,8 +40,13 @@ def regular_svd_by_pca(K, k=0):
     return tUp, tsp, tVp;
 
 def orth(A, threshold=1e-6):
-    U, s, V = regular_svd(A, k=min(A.shape));
-    return U[:, abs(s) > threshold];
+    # # MOD-BY-LEETEN 2014/05/13-FROM:
+    # U, s, V = regular_svd(A, k=min(A.shape));
+    # return U[:, abs(s) > threshold];
+    # # MOD-BY-LEETEN 2014/05/13-TO:
+    q, r = np.linalg.qr(A, mode='reduced');
+    return q;
+    # # MOD-BY-LEETEN 2014/05/13-END
 
 # A wrapper of svd.
 # Otherwise, scipy.sparse.linals's svd cannot handle the case that the rank is equal to the min(#rows, #col).  
