@@ -258,8 +258,14 @@ def rank_one_update( U, s, V, a, b, force_orth ):
     return [Up, sp, Vp];
 
 def re_orth(Up, sp, Vp):
-    UQ, UR = la.qr( Up, mode='economic' );
-    VQ, VR = la.qr( Vp, mode='economic' );
+    # # MOD-BY-LEETEN 2014/05/14-FROM:
+    # UQ, UR = la.qr( Up, mode='economic' );
+    # VQ, VR = la.qr( Vp, mode='economic' );
+    # # MOD-BY-LEETEN 2014/05/14-TO:
+    UQ, UR = np.linalg.qr(Up, mode='reduced');
+    VQ, VR = np.linalg.qr(Vp, mode='reduced');
+    # # MOD-BY-LEETEN 2014/05/14-END
+    
     [tUp, tsp, tVp] = regular_svd( np.dot(np.dot(UR, np.diag(sp)), VR.T) );
     return np.dot(UQ, tUp), tsp, np.dot(VQ, tVp);
     
