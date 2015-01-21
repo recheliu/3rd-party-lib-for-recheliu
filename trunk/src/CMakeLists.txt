@@ -12,6 +12,9 @@ if( IS_LIB_STATIC )
 endif()
 
 add_subdirectory(lodepng)				
+# ADD-BY-LEETEN 2015/01/20-BEGIN
+add_subdirectory(arpack)				
+# ADD-BY-LEETEN 2015/01/20-END
 
 add_subdirectory(zlib-1.2.6)			# zlib	
 include_directories(zlib-1.2.6)
