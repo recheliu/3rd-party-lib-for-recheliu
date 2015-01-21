@@ -38,10 +38,10 @@ endif()
 LIST(APPEND ThirdPartyLib_INCLUDE_DIRS	"${ThirdPartyLib_DIR}/include")
 LIST(APPEND ThirdPartyLib_LIBRARY_DIRS	"${ThirdPartyLib_DIR}/lib")
 
-# TEST-ADD-BEGIN
+# ADD-BY-LEETEN 2015/01/20-BEGIN
 LIST(APPEND ThirdPartyLib_INCLUDE_DIRS	"${ThirdPartyLib_DIR}/include/arpack")
 add_lib(arpack_${ARCH} 	arpack_${ARCH})
-# TEST-ADD-END
+# ADD-BY-LEETEN 2015/01/20-EN
 
 add_lib(ijktable 	ijktabled)
 add_lib(lodepng 	lodepngd)
