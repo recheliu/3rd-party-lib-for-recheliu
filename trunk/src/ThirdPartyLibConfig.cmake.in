@@ -41,6 +41,9 @@ LIST(APPEND ThirdPartyLib_LIBRARY_DIRS	"${ThirdPartyLib_DIR}/lib")
 # ADD-BY-LEETEN 2015/01/20-BEGIN
 LIST(APPEND ThirdPartyLib_INCLUDE_DIRS	"${ThirdPartyLib_DIR}/include/arpack")
 add_lib(arpack_${ARCH} 	arpack_${ARCH})
+# ADD-BY-LEETEN 2015/01/25-BEGIN
+add_lib(arpackpp arpackppd)
+# ADD-BY-LEETEN 2015/01/25-END
 # ADD-BY-LEETEN 2015/01/20-EN
 
 add_lib(ijktable 	ijktabled)
