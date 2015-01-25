@@ -29,7 +29,11 @@
 
 // "New" handler.
 
+#if	0	// MOD-BY-LEETEN 2015/01/25-FROM:
 void MemoryOverflow() { throw ArpackError(ArpackError::MEMORY_OVERFLOW); }
+#else	// MOD-BY-LEETEN 2015/01/25-TO:
+inline void MemoryOverflow() { throw ArpackError(ArpackError::MEMORY_OVERFLOW); }
+#endif	// MOD-BY-LEETEN 2015/01/25-END
 
 // ARrcStdEig class definition.
 

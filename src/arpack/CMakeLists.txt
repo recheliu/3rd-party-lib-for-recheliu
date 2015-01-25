@@ -5,7 +5,7 @@ PROJECT(arpack)
 file(GLOB HEADER_FILES 	"include/*.h" )
 file(GLOB LIBRARY_FILES "lib/*" )
 file(GLOB BINARY_FILES 	"bin/*" )
-	
+
 add_custom_target (${PROJECT_NAME}
 	SOURCES	${HEADER_FILES} 
 )
@@ -22,3 +22,21 @@ install(
 	FILES ${BINARY_FILES}
 	DESTINATION "bin")
 
+# ADD-BY-LEETEN 2015/01/25-BEGIN
+set(ARPACKPP_LIB_NAME arpackpp)
+add_library(${ARPACKPP_LIB_NAME} STATIC
+	${HEADER_FILES} 
+	arpackpp/arpackpp.cpp
+	)
+
+set_target_properties(${ARPACKPP_LIB_NAME} PROPERTIES 
+	DEBUG_OUTPUT_NAME "${ARPACKPP_LIB_NAME}d"
+	)
+
+install(
+	TARGETS ${ARPACKPP_LIB_NAME}
+	ARCHIVE 
+	DESTINATION "lib"
+	)
+
+# ADD-BY-LEETEN 2015/01/25-END

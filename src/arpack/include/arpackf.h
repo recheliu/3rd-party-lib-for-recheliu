@@ -24,12 +24,23 @@ extern "C"
 
 // debug "common" statement.
 
+#if	0	// MOD-BY-LEETEN 2015/01/25-FROM:
   struct { 
     integer logfil, ndigit, mgetv0;
     integer msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd;
     integer mnaupd, mnaup2, mnaitr, mneigt, mnapps, mngets, mneupd;
     integer mcaupd, mcaup2, mcaitr, mceigt, mcapps, mcgets, mceupd;
   } F77NAME(debug);
+#else	// MOD-BY-LEETEN 2015/01/25-TO:
+  struct CDebug { 
+    integer logfil, ndigit, mgetv0;
+    integer msaupd, msaup2, msaitr, mseigt, msapps, msgets, mseupd;
+    integer mnaupd, mnaup2, mnaitr, mneigt, mnapps, mngets, mneupd;
+    integer mcaupd, mcaup2, mcaitr, mceigt, mcapps, mcgets, mceupd;
+  };
+  
+  extern CDebug F77NAME(debug);
+#endif	// MOD-BY-LEETEN 2015/01/25-END
 
 
 // double precision symmetric routines.
