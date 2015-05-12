@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
 project(ThirdPartyLib)
 
+# ADD-BY-LEETEN 2015/05/11-BEGIN
+set(PYTHON_EXEC "/usr/bin/python" CACHE FILEPATH "Executable to the python executable.")
+# ADD-BY-LEETEN 2015/05/11-END
+
 set(IS_LIB_STATIC ON CACHE BOOL "Flag to decide whether static libraries are built.")
 set(WITH_NRRD ON CACHE BOOL "Flag to decide whether NrrdIO is built. NrrdIO so far can only work for 32-bit architecture." FORCE)
 set(WITH_OPENGL OFF CACHE BOOL "Flag to decide whether OpenGL-related librarties are built. ") # ADD-BY-LEETEN 04/21/2012
@@ -16,14 +20,26 @@ add_subdirectory(lodepng)
 add_subdirectory(arpack)				
 # ADD-BY-LEETEN 2015/01/20-END
 
+# ADD-BY-LEETEN 2015/05/11-BEGIN
+STRING(COMPARE EQUAL "${CMAKE_GENERATOR}" "Visual Studio 10 2010 Win64" IS_VC2014_X64)
+if( IS_VC2014_X64 )
+    add_subdirectory(netcdf/vs2010)
+endif()
+# ADD-BY-LEETEN 2015/05/11-END
+
 add_subdirectory(zlib-1.2.6)			# zlib	
 include_directories(zlib-1.2.6)
 include_directories(${CMAKE_BINARY_DIR}/zlib-1.2.6)
 if( WITH_OPENGL )	
+	# ADD-BY-LEETEN 2015/05/11-BEGIN
+	add_subdirectory(glew) 		# freeglut
+	# ADD-BY-LEETEN 2015/05/11-END
+	
 	add_subdirectory(freeglut-2.8.0) 		# freeglut
 	add_subdirectory(glui-2.36/src)			# glui
 	add_dependencies(glui freeglut)
 	set(GLUT_DIR ${PROJECT_SOURCE_DIR}/freeglut-2.8.0 CACHE PATH "Path of GLUT." FORCE)
+
 endif()	
 
 # add_subdirectory(NrrdIO)				# ITKNrrdIO

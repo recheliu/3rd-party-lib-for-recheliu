@@ -1,0 +1,1 @@
+This folder stores script for platform-indepdenent operations (E.g. Unzip).
